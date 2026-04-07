@@ -221,7 +221,7 @@ export default function RoutineScreen() {
             [
               { key: "morning", label: "Morning" },
               { key: "evening", label: "Evening" },
-              { key: "suggestions", label: "AI Tips" },
+              { key: "suggestions", label: "Tips" },
             ] as const
           ).map((t) => (
             <TouchableOpacity
@@ -323,62 +323,62 @@ export default function RoutineScreen() {
               </View>
             ))}
 
-            {/* Pro upsell card — only for Plus users */}
-            {user?.plan === "plus" && (
-              <TouchableOpacity
-                onPress={() => router.push("/subscribe")}
-                activeOpacity={0.88}
-                style={styles.proUpsellCard}
-              >
-                <LinearGradient
-                  colors={["#1A0A0F", "#2D0E1C"]}
-                  style={styles.proUpsellGrad}
-                >
-                  {/* Glow accent */}
-                  <View style={styles.proUpsellGlow} />
-
-                  <View style={styles.proUpsellTopRow}>
-                    <View style={styles.proUpsellBadge}>
-                      <Feather name="star" size={11} color={colors.gold} />
-                      <Text style={[styles.proUpsellBadgeText, { color: colors.gold }]}>
-                        Glowra Pro
-                      </Text>
-                    </View>
-                    <Text style={styles.proUpsellPrice}>$12.99/mo</Text>
-                  </View>
-
-                  <Text style={styles.proUpsellHeading}>
-                    Unlock Advanced AI Insights
-                  </Text>
-                  <Text style={styles.proUpsellSub}>
-                    Your Plus plan gives you great tips — but Pro goes deeper with AI trained on your personal scan history.
-                  </Text>
-
-                  <View style={styles.proUpsellFeatures}>
-                    {[
-                      { icon: "cpu" as const, text: "Advanced AI skin analysis across all 5 metrics" },
-                      { icon: "calendar" as const, text: "Personalized daily routine rebuilt each week" },
-                      { icon: "trending-up" as const, text: "Progress tracking with trend predictions" },
-                      { icon: "unlock" as const, text: "Unlimited scans, no daily cap" },
-                    ].map((f) => (
-                      <View key={f.text} style={styles.proUpsellFeatureRow}>
-                        <View style={styles.proUpsellFeatureIcon}>
-                          <Feather name={f.icon} size={14} color={colors.gold} />
-                        </View>
-                        <Text style={styles.proUpsellFeatureText}>{f.text}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  <View style={[styles.proUpsellBtn, { backgroundColor: colors.primary }]}>
-                    <Feather name="zap" size={15} color="#fff" />
-                    <Text style={styles.proUpsellBtnText}>Upgrade to Pro</Text>
-                    <Feather name="arrow-right" size={15} color="#fff" />
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
           </View>
+        )}
+
+        {/* Pro upsell card — below all tabs, only for Plus users */}
+        {user?.plan === "plus" && (
+          <TouchableOpacity
+            onPress={() => router.push("/subscribe")}
+            activeOpacity={0.88}
+            style={styles.proUpsellCard}
+          >
+            <LinearGradient
+              colors={["#1A0A0F", "#2D0E1C"]}
+              style={styles.proUpsellGrad}
+            >
+              <View style={styles.proUpsellGlow} />
+
+              <View style={styles.proUpsellTopRow}>
+                <View style={styles.proUpsellBadge}>
+                  <Feather name="star" size={11} color={colors.gold} />
+                  <Text style={[styles.proUpsellBadgeText, { color: colors.gold }]}>
+                    Glowra Pro
+                  </Text>
+                </View>
+                <Text style={styles.proUpsellPrice}>$12.99/mo</Text>
+              </View>
+
+              <Text style={styles.proUpsellHeading}>
+                Unlock Advanced AI Insights
+              </Text>
+              <Text style={styles.proUpsellSub}>
+                Your Plus plan gives you great tips — but Pro goes deeper with AI trained on your personal scan history.
+              </Text>
+
+              <View style={styles.proUpsellFeatures}>
+                {[
+                  { icon: "cpu" as const, text: "Advanced AI skin analysis across all 5 metrics" },
+                  { icon: "calendar" as const, text: "Personalized daily routine rebuilt each week" },
+                  { icon: "trending-up" as const, text: "Progress tracking with trend predictions" },
+                  { icon: "unlock" as const, text: "Unlimited scans, no daily cap" },
+                ].map((f) => (
+                  <View key={f.text} style={styles.proUpsellFeatureRow}>
+                    <View style={styles.proUpsellFeatureIcon}>
+                      <Feather name={f.icon} size={14} color={colors.gold} />
+                    </View>
+                    <Text style={styles.proUpsellFeatureText}>{f.text}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={[styles.proUpsellBtn, { backgroundColor: colors.primary }]}>
+                <Feather name="zap" size={15} color="#fff" />
+                <Text style={styles.proUpsellBtnText}>Upgrade to Pro</Text>
+                <Feather name="arrow-right" size={15} color="#fff" />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
         )}
       </ScrollView>
     </View>
