@@ -25,3 +25,30 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Glowra Mobile App
+
+AI-powered face & skin analysis app for women. Built with Expo (React Native).
+
+### Screens
+- **Onboarding** (`/onboarding`) — 3-slide welcome flow with animated dots
+- **Auth** (`/auth`) — Sign in / Sign up with email & password
+- **Home** (`/(tabs)/index`) — Dashboard with scan CTA, last scan result, tips
+- **Camera** (`/camera`) — Selfie capture or gallery upload for analysis
+- **Analyzing** (`/analyzing`) — AI processing animation with step-by-step progress
+- **Results** (`/results`) — Skin score, skin age, hydration/pigmentation/texture/pores analytics
+- **Routine** (`/routine`) — AI daily skincare routine (morning/evening/tips tabs)
+- **Subscribe** (`/subscribe`) — Free vs Pro paywall with feature comparison
+- **History** (`/(tabs)/history`) — Scan history with stats
+- **Profile** (`/(tabs)/profile`) — User profile, stats, menu, logout
+
+### Design Tokens (Glowra)
+- **Font**: Nunito (400/500/600/700/800)
+- **Primary**: `#E8738A` (rose pink)
+- **Background**: `#FFF8F5` (warm cream)
+- **Blush**: `#F9E8E8`
+- **Gold**: `#D4A96A`
+
+### Subscription Model
+- **Free**: 1 scan/day, basic report (score + skin age + basic analytics), no AI suggestions/routine
+- **Pro ($9.99/mo)**: Unlimited scans, deep report, AI suggestions, daily routine

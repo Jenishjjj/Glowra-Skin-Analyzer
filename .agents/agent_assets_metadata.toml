@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "GBIJnw_JqSJ-pSYDHG34U"
+uri = "file://artifacts/glowra/assets/images/icon.png"
+type = "image"
+title = "glowra app icon"
+
+[[generated]]
+id = "5nYvSmAEqEzZgmtRHoTnE"
+uri = "file://artifacts/glowra/assets/images/splash.png"
+type = "image"
+title = "glowra splash illustration"
+
+[[generated]]
+id = "WemN9zFV6TAYW8Pdycfwo"
+uri = "file://artifacts/glowra/assets/images/skincare_hero.png"
+type = "image"
+title = "skincare hero image"
