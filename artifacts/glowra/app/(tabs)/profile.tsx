@@ -102,10 +102,15 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.userName}>{user?.name || "Glowra User"}</Text>
           <Text style={styles.userAge}>{user?.age ? `Age ${user.age}` : ""}</Text>
-          {user?.isPro ? (
+          {user?.plan === "pro" ? (
             <View style={[styles.proBadge, { backgroundColor: colors.gold + "25", borderColor: colors.gold + "50" }]}>
               <Feather name="star" size={11} color={colors.gold} />
               <Text style={[styles.proBadgeText, { color: colors.gold }]}>Pro Member</Text>
+            </View>
+          ) : user?.plan === "plus" ? (
+            <View style={[styles.proBadge, { backgroundColor: "#A78BFA25", borderColor: "#A78BFA55" }]}>
+              <Feather name="zap" size={11} color="#A78BFA" />
+              <Text style={[styles.proBadgeText, { color: "#A78BFA" }]}>Plus Member</Text>
             </View>
           ) : (
             <TouchableOpacity
@@ -140,28 +145,75 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: bottomInset + 24 }]}
       >
-        {/* Upgrade card for free users */}
-        {!user?.isPro && (
-          <TouchableOpacity onPress={() => router.push("/subscribe")} activeOpacity={0.88}>
-            <LinearGradient
-              colors={[colors.dark, colors.darkCard]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.subscribeCard}
-            >
-              <View style={[styles.subIconWrap, { backgroundColor: colors.gold + "20" }]}>
-                <Feather name="star" size={20} color={colors.gold} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.subscribeTitle}>Unlock Glowra Pro</Text>
-                <Text style={styles.subscribeSub}>Unlimited scans · AI routine · Deep insights</Text>
-              </View>
-              <View style={[styles.subscribeArrow, { backgroundColor: colors.primary }]}>
-                <Feather name="arrow-right" size={14} color="#fff" />
-              </View>
-            </LinearGradient>
+        {/* Subscription section — always visible */}
+        <View style={[styles.subSection, { backgroundColor: colors.card }]}>
+          <View style={styles.subSectionHeader}>
+            <View style={[styles.subSectionIcon, { backgroundColor: colors.gold + "20" }]}>
+              <Feather name="star" size={18} color={colors.gold} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.subSectionTitle, { color: colors.foreground }]}>My Subscription</Text>
+              <Text style={[styles.subSectionCurrent, { color: colors.taupeLight }]}>
+                {user?.plan === "pro"
+                  ? "Glowra Pro — Unlimited scans & AI routine"
+                  : user?.plan === "plus"
+                  ? "Glowra Plus — 5 scans/day & full analytics"
+                  : "Glowra Lite — Free plan"}
+              </Text>
+            </View>
+            <View style={[
+              styles.subPlanPill,
+              {
+                backgroundColor:
+                  user?.plan === "pro" ? colors.gold + "22" :
+                  user?.plan === "plus" ? "#A78BFA22" :
+                  colors.muted,
+              },
+            ]}>
+              <Text style={[
+                styles.subPlanPillText,
+                {
+                  color:
+                    user?.plan === "pro" ? colors.gold :
+                    user?.plan === "plus" ? "#A78BFA" :
+                    colors.taupe,
+                },
+              ]}>
+                {user?.plan === "pro" ? "Pro" : user?.plan === "plus" ? "Plus" : "Free"}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[styles.subDivider, { backgroundColor: colors.border }]} />
+
+          {/* Action buttons */}
+          <TouchableOpacity
+            style={styles.subActionRow}
+            onPress={() => router.push("/subscribe")}
+            activeOpacity={0.8}
+          >
+            <Feather name="refresh-cw" size={16} color={colors.primary} />
+            <Text style={[styles.subActionText, { color: colors.primary }]}>
+              {user?.plan === "free" ? "Upgrade Plan" : "Change Plan"}
+            </Text>
+            <Feather name="chevron-right" size={16} color={colors.primary} style={{ marginLeft: "auto" }} />
           </TouchableOpacity>
-        )}
+
+          {user?.plan && user.plan !== "free" && (
+            <>
+              <View style={[styles.subDivider, { backgroundColor: colors.border }]} />
+              <TouchableOpacity
+                style={styles.subActionRow}
+                onPress={() => router.push("/subscribe")}
+                activeOpacity={0.8}
+              >
+                <Feather name="x-circle" size={16} color={colors.destructive} />
+                <Text style={[styles.subActionText, { color: colors.destructive }]}>Cancel Subscription</Text>
+                <Feather name="chevron-right" size={16} color={colors.destructive} style={{ marginLeft: "auto" }} />
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
 
         {/* Menu */}
         <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
@@ -229,11 +281,16 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11, fontFamily: "Nunito_400Regular", color: "rgba(255,255,255,0.45)" },
   statDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.1)" },
   scroll: { paddingHorizontal: 20, paddingTop: 20, gap: 16 },
-  subscribeCard: { flexDirection: "row", alignItems: "center", gap: 14, padding: 18, borderRadius: 20 },
-  subIconWrap: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center" },
-  subscribeTitle: { fontSize: 15, fontFamily: "Nunito_700Bold", color: "#fff" },
-  subscribeSub: { fontSize: 12, fontFamily: "Nunito_400Regular", color: "rgba(255,255,255,0.5)", marginTop: 2 },
-  subscribeArrow: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+  subSection: { borderRadius: 20, overflow: "hidden" },
+  subSectionHeader: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
+  subSectionIcon: { width: 44, height: 44, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  subSectionTitle: { fontSize: 15, fontFamily: "Nunito_700Bold" },
+  subSectionCurrent: { fontSize: 12, fontFamily: "Nunito_400Regular", marginTop: 2 },
+  subPlanPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  subPlanPillText: { fontSize: 12, fontFamily: "Nunito_700Bold" },
+  subDivider: { height: 1, marginHorizontal: 16 },
+  subActionRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
+  subActionText: { fontSize: 14, fontFamily: "Nunito_600SemiBold" },
   menuCard: { borderRadius: 20, overflow: "hidden" },
   menuItem: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
   menuIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
