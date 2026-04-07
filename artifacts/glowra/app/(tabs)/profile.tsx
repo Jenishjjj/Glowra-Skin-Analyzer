@@ -33,7 +33,7 @@ const MENU_ITEMS = [
 export default function ProfileScreen() {
   const colors = useColors();
   const router = useRouter();
-  const { user, scanHistory, setIsLoggedIn } = useApp();
+  const { user, scanHistory, logout } = useApp();
   const insets = useSafeAreaInsets();
 
   const topInset = Platform.OS === "web" ? 67 : insets.top;
@@ -64,7 +64,7 @@ export default function ProfileScreen() {
       : "—";
 
   const handleLogout = async () => {
-    await setIsLoggedIn(false);
+    await logout();
     router.replace("/auth");
   };
 
@@ -123,7 +123,7 @@ export default function ProfileScreen() {
           {[
             { label: "Total Scans", value: String(scanHistory.length) },
             { label: "Avg Score", value: avgScore },
-            { label: "Plan", value: user?.isPro ? "Pro" : "Free" },
+            { label: "Plan", value: user?.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : "Free" },
           ].map((s, i) => (
             <React.Fragment key={s.label}>
               {i > 0 && <View style={styles.statDivider} />}

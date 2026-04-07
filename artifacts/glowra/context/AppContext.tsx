@@ -1,6 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+import {
+  fetchProfile,
+  getCurrentUser,
+  getSession,
+  Profile,
+  signOut,
+  updateProfile,
+} from "@/lib/authService";
+import { fetchScans, saveScan } from "@/lib/scanService";
+import { supabase } from "@/lib/supabase";
+
 export type ScanResult = {
   id: string;
   date: string;
@@ -16,28 +27,45 @@ export type ScanResult = {
 };
 
 type User = {
+  id: string;
   name: string;
   age: number;
   isPro: boolean;
+  plan: "free" | "plus" | "pro";
   scansToday: number;
   lastScanDate: string;
 };
 
 type AppContextType = {
   user: User | null;
-  setUser: (u: User) => void;
+  setUser: (u: User) => Promise<void>;
   isOnboarded: boolean;
   setIsOnboarded: (v: boolean) => void;
   isLoggedIn: boolean;
   setIsLoggedIn: (v: boolean) => void;
   scanHistory: ScanResult[];
-  addScan: (scan: ScanResult) => void;
+  addScan: (scan: ScanResult) => Promise<void>;
+  deleteScanById: (id: string) => Promise<void>;
   currentScan: ScanResult | null;
   setCurrentScan: (scan: ScanResult | null) => void;
   canScanToday: boolean;
+  logout: () => Promise<void>;
+  refreshScans: () => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
+
+function profileToUser(profile: Profile, userId: string): User {
+  return {
+    id: userId,
+    name: profile.name,
+    age: profile.age,
+    plan: profile.plan,
+    isPro: profile.plan === "pro" || profile.plan === "plus",
+    scansToday: profile.scans_today,
+    lastScanDate: profile.last_scan_date,
+  };
+}
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
@@ -47,28 +75,63 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentScan, setCurrentScan] = useState<ScanResult | null>(null);
   const [loaded, setLoaded] = useState(false);
 
+  // ── Bootstrap: restore onboarded flag + check Supabase session ──────────────
   useEffect(() => {
     (async () => {
       try {
-        const [onb, login, userData, history] = await Promise.all([
-          AsyncStorage.getItem("isOnboarded"),
-          AsyncStorage.getItem("isLoggedIn"),
-          AsyncStorage.getItem("user"),
-          AsyncStorage.getItem("scanHistory"),
-        ]);
+        const onb = await AsyncStorage.getItem("isOnboarded");
         if (onb === "true") setIsOnboardedState(true);
-        if (login === "true") setIsLoggedInState(true);
-        if (userData) setUserState(JSON.parse(userData));
-        if (history) setScanHistory(JSON.parse(history));
+
+        const session = await getSession();
+        if (session?.user) {
+          await loadUserData(session.user.id);
+        }
       } finally {
         setLoaded(true);
       }
     })();
+
+    // Listen for auth state changes (login / logout)
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        await loadUserData(session.user.id);
+        setIsLoggedInState(true);
+      } else if (event === "SIGNED_OUT") {
+        setUserState(null);
+        setScanHistory([]);
+        setIsLoggedInState(false);
+      }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
+  async function loadUserData(userId: string) {
+    const [profile, scans] = await Promise.all([
+      fetchProfile(userId),
+      fetchScans(userId),
+    ]);
+    if (profile) {
+      setUserState(profileToUser(profile, userId));
+    }
+    setScanHistory(scans);
+    setIsLoggedInState(true);
+  }
+
+  // ── Setters ───────────────────────────────────────────────────────────────
   const setUser = async (u: User) => {
     setUserState(u);
-    await AsyncStorage.setItem("user", JSON.stringify(u));
+    if (u.id) {
+      await updateProfile(u.id, {
+        name: u.name,
+        age: u.age,
+        plan: u.plan,
+        scans_today: u.scansToday,
+        last_scan_date: u.lastScanDate,
+      });
+    }
   };
 
   const setIsOnboarded = async (v: boolean) => {
@@ -78,30 +141,76 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setIsLoggedIn = async (v: boolean) => {
     setIsLoggedInState(v);
-    await AsyncStorage.setItem("isLoggedIn", v ? "true" : "false");
   };
 
+  // ── Scans ─────────────────────────────────────────────────────────────────
   const addScan = async (scan: ScanResult) => {
-    const updated = [scan, ...scanHistory].slice(0, 50);
-    setScanHistory(updated);
-    await AsyncStorage.setItem("scanHistory", JSON.stringify(updated));
+    // Optimistic local update
+    setScanHistory((prev) => [scan, ...prev].slice(0, 50));
+
+    const today = new Date().toDateString();
 
     if (user) {
-      const today = new Date().toDateString();
+      // Persist to Supabase
+      try {
+        await saveScan(user.id, scan);
+      } catch (e) {
+        console.warn("Supabase saveScan failed, kept locally:", e);
+      }
+
+      // Update scan count
       const newUser: User = {
         ...user,
         scansToday: user.lastScanDate === today ? user.scansToday + 1 : 1,
         lastScanDate: today,
       };
-      setUser(newUser);
+      setUserState(newUser);
+      try {
+        await updateProfile(user.id, {
+          scans_today: newUser.scansToday,
+          last_scan_date: newUser.lastScanDate,
+        });
+      } catch (e) {
+        console.warn("Profile update failed:", e);
+      }
     }
   };
 
+  const deleteScanById = async (id: string) => {
+    setScanHistory((prev) => prev.filter((s) => s.id !== id));
+    try {
+      const { deleteScan } = await import("@/lib/scanService");
+      await deleteScan(id);
+    } catch (e) {
+      console.warn("Delete scan failed:", e);
+    }
+  };
+
+  const refreshScans = async () => {
+    if (!user?.id) return;
+    try {
+      const scans = await fetchScans(user.id);
+      setScanHistory(scans);
+    } catch (e) {
+      console.warn("Refresh scans failed:", e);
+    }
+  };
+
+  // ── Logout ────────────────────────────────────────────────────────────────
+  const logout = async () => {
+    await signOut();
+    setUserState(null);
+    setScanHistory([]);
+    setIsLoggedInState(false);
+  };
+
+  // ── Scan gate ─────────────────────────────────────────────────────────────
+  const dailyLimit = user?.plan === "plus" ? 5 : user?.plan === "pro" ? Infinity : 1;
   const canScanToday =
     !user ||
-    user.isPro ||
+    user.plan === "pro" ||
     user.lastScanDate !== new Date().toDateString() ||
-    user.scansToday < 1;
+    user.scansToday < dailyLimit;
 
   if (!loaded) return null;
 
@@ -116,9 +225,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setIsLoggedIn,
         scanHistory,
         addScan,
+        deleteScanById,
         currentScan,
         setCurrentScan,
         canScanToday,
+        logout,
+        refreshScans,
       }}
     >
       {children}

@@ -25,6 +25,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
+import { signIn, signUp } from "@/lib/authService";
 import { useColors } from "@/hooks/useColors";
 
 const { height } = Dimensions.get("window");
@@ -77,19 +78,29 @@ export default function AuthScreen() {
     transform: [{ translateY: cardY.value }],
   }));
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = async () => {
+    if (!email.trim() || !password.trim()) {
+      setError("Please fill in all required fields.");
+      return;
+    }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    await setUser({
-      name: name || "Glowra User",
-      age: parseInt(age) || 25,
-      isPro: false,
-      scansToday: 0,
-      lastScanDate: "",
-    });
-    await setIsLoggedIn(true);
-    setLoading(false);
-    router.replace("/(tabs)");
+    setError(null);
+    try {
+      if (mode === "register") {
+        if (!name.trim()) { setError("Please enter your name."); setLoading(false); return; }
+        await signUp(email.trim(), password, name.trim(), parseInt(age) || 25);
+      } else {
+        await signIn(email.trim(), password);
+      }
+      // onAuthStateChange in AppContext will update user state
+      router.replace("/(tabs)");
+    } catch (e: any) {
+      setError(e?.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -191,6 +202,13 @@ export default function AuthScreen() {
                 </View>
               </View>
             </View>
+
+            {error && (
+              <View style={[styles.errorBox, { backgroundColor: "#FFE8E8", borderColor: "#E8738A30" }]}>
+                <Feather name="alert-circle" size={14} color="#E8738A" />
+                <Text style={[styles.errorText, { color: "#C0392B" }]}>{error}</Text>
+              </View>
+            )}
 
             <TouchableOpacity
               style={[styles.submitBtn, { backgroundColor: loading ? colors.roseLight : colors.primary }]}
@@ -357,6 +375,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   socialText: { fontSize: 14, fontFamily: "Nunito_600SemiBold" },
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  errorText: { fontSize: 13, fontFamily: "Nunito_500Medium", flex: 1 },
   termsText: {
     color: "rgba(255,255,255,0.3)",
     fontSize: 11,
