@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -143,7 +143,7 @@ export default function AuthScreen() {
                 colors={[colors.primary, colors.roseDeep]}
                 style={styles.logoIconGrad}
               >
-                <Feather name="sun" size={36} color="#fff" />
+                <Icon name="sun" size={36} color="#fff" />
               </LinearGradient>
             </View>
             <Text style={styles.brandName}>glowra</Text>
@@ -200,7 +200,7 @@ export default function AuthScreen() {
               <View>
                 <Text style={[styles.label, { color: colors.textLight }]}>Password</Text>
                 <View style={[styles.inputRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-                  <Feather name="lock" size={18} color={colors.taupe} />
+                  <Icon name="lock" size={18} color={colors.taupe} />
                   <TextInput
                     style={[styles.inputText, { color: colors.foreground }]}
                     value={password}
@@ -210,7 +210,7 @@ export default function AuthScreen() {
                     secureTextEntry={!showPass}
                   />
                   <TouchableOpacity onPress={() => setShowPass((p) => !p)}>
-                    <Feather name={showPass ? "eye-off" : "eye"} size={18} color={colors.taupe} />
+                    <Icon name={showPass ? "eye-off" : "eye"} size={18} color={colors.taupe} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -218,7 +218,7 @@ export default function AuthScreen() {
 
             {error && (
               <View style={[styles.errorBox, { backgroundColor: "#FFE8E8", borderColor: "#E8738A30" }]}>
-                <Feather name="alert-circle" size={14} color="#E8738A" />
+                <Icon name="alert-circle" size={14} color="#E8738A" />
                 <Text style={[styles.errorText, { color: "#C0392B" }]}>{error}</Text>
               </View>
             )}
@@ -256,7 +256,7 @@ export default function AuthScreen() {
                   style={[styles.socialBtn, { backgroundColor: colors.muted, borderColor: colors.border }]}
                   onPress={handleSubmit}
                 >
-                  <Feather name={s.icon} size={18} color={colors.foreground} />
+                  <Icon name={s.icon} size={18} color={colors.foreground} />
                   <Text style={[styles.socialText, { color: colors.foreground }]}>{s.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -278,7 +278,7 @@ function InputField({
   label: string;
   value: string;
   onChangeText: (t: string) => void;
-  icon: React.ComponentProps<typeof Feather>["name"];
+  icon: IconName;
   placeholder: string;
   keyboardType?: "default" | "email-address" | "numeric";
 }) {
@@ -287,7 +287,7 @@ function InputField({
     <View>
       <Text style={[styles.label, { color: colors.textLight }]}>{label}</Text>
       <View style={[styles.inputRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-        <Feather name={icon} size={18} color={colors.taupe} />
+        <Icon name={icon} size={18} color={colors.taupe} />
         <TextInput
           style={[styles.inputText, { color: colors.foreground }]}
           value={value}

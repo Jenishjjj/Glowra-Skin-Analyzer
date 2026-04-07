@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -32,7 +32,7 @@ const PLANS: {
   yearlyPrice: string;
   yearlySub: string;
   badge?: string;
-  badgeIcon?: React.ComponentProps<typeof Feather>["name"];
+  badgeIcon?: IconName;
   features: Feature[];
 }[] = [
   {
@@ -138,7 +138,7 @@ function FeatureRow({
 
   return (
     <View style={styles.featureRow}>
-      <Feather name={iconName} size={13} color={iconColor} />
+      <Icon name={iconName} size={13} color={iconColor} />
       <Text style={[styles.featureText, { color: textColor }]}>
         {feature.text}
         {feature.note && (
@@ -219,7 +219,7 @@ export default function SubscribeScreen() {
             style={[styles.closeBtn, { backgroundColor: colors.blush }]}
             onPress={() => router.back()}
           >
-            <Feather name="x" size={20} color={colors.primary} />
+            <Icon name="x" size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -229,7 +229,7 @@ export default function SubscribeScreen() {
             colors={[colors.goldLight, colors.blush]}
             style={styles.starCircle}
           >
-            <Feather name="star" size={36} color={colors.gold} />
+            <Icon name="star" size={36} color={colors.gold} />
           </LinearGradient>
           <Text style={[styles.heroTitle, { color: colors.foreground }]}>
             Choose Your{" "}
@@ -306,7 +306,7 @@ export default function SubscribeScreen() {
                       <View>
                         <View style={styles.proBadgeRow}>
                           <View style={styles.popularBadge}>
-                            <Feather
+                            <Icon
                               name="star"
                               size={10}
                               color={colors.gold}
@@ -345,7 +345,7 @@ export default function SubscribeScreen() {
 
                     {billing === "yearly" && (
                       <View style={styles.annualBadge}>
-                        <Feather
+                        <Icon
                           name="zap"
                           size={11}
                           color={colors.gold}
@@ -473,7 +473,7 @@ export default function SubscribeScreen() {
                       { backgroundColor: colors.goldLight },
                     ]}
                   >
-                    <Feather name="zap" size={11} color={colors.gold} />
+                    <Icon name="zap" size={11} color={colors.gold} />
                     <Text
                       style={[styles.annualBadgeText, { color: colors.gold }]}
                     >
@@ -527,7 +527,7 @@ export default function SubscribeScreen() {
 
         {upgradeError && (
           <View style={[styles.errorBanner, { backgroundColor: "#FFE8E8" }]}>
-            <Feather name="alert-circle" size={14} color="#C0392B" />
+            <Icon name="alert-circle" size={14} color="#C0392B" />
             <Text style={styles.errorBannerText}>{upgradeError}</Text>
           </View>
         )}
@@ -539,7 +539,7 @@ export default function SubscribeScreen() {
               colors={[colors.goldLight, "#FFF8F5"]}
               style={[styles.annualCallout, { borderColor: colors.gold }]}
             >
-              <Feather name="zap" size={16} color={colors.gold} />
+              <Icon name="zap" size={16} color={colors.gold} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.annualCalloutTitle, { color: colors.foreground }]}>
                   Switch to Yearly & Save
@@ -548,7 +548,7 @@ export default function SubscribeScreen() {
                   Pro yearly at $99 · Plus yearly at $59
                 </Text>
               </View>
-              <Feather name="chevron-right" size={18} color={colors.gold} />
+              <Icon name="chevron-right" size={18} color={colors.gold} />
             </LinearGradient>
           </TouchableOpacity>
         )}
@@ -569,7 +569,7 @@ export default function SubscribeScreen() {
             >
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Feather key={s} name="star" size={13} color={colors.gold} />
+                  <Icon key={s} name="star" size={13} color={colors.gold} />
                 ))}
               </View>
               <Text

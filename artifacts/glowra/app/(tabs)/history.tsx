@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -58,7 +58,7 @@ function ScanHistoryCard({ scan, onPress }: { scan: ScanResult; onPress: () => v
       </View>
 
       <View style={[styles.arrowBtn, { backgroundColor: colors.blush }]}>
-        <Feather name="arrow-right" size={14} color={colors.primary} />
+        <Icon name="arrow-right" size={14} color={colors.primary} />
       </View>
     </TouchableOpacity>
   );
@@ -105,7 +105,7 @@ export default function HistoryScreen() {
               <React.Fragment key={s.label}>
                 {i > 0 && <View style={styles.stripDivider} />}
                 <View style={styles.statItem}>
-                  <Feather name={s.icon} size={14} color={colors.primary} style={{ marginBottom: 4 }} />
+                  <Icon name={s.icon} size={14} color={colors.primary} style={{ marginBottom: 4 }} />
                   <Text style={styles.statValue}>{s.value}</Text>
                   <Text style={styles.statLabel}>{s.label}</Text>
                 </View>
@@ -118,7 +118,7 @@ export default function HistoryScreen() {
       {scanHistory.length === 0 ? (
         <View style={styles.empty}>
           <View style={[styles.emptyIcon, { backgroundColor: colors.blush }]}>
-            <Feather name="camera" size={32} color={colors.primary} />
+            <Icon name="camera" size={32} color={colors.primary} />
           </View>
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No scans yet</Text>
           <Text style={[styles.emptySub, { color: colors.taupe }]}>
@@ -128,7 +128,7 @@ export default function HistoryScreen() {
             style={[styles.scanBtn, { backgroundColor: colors.primary }]}
             onPress={() => router.push("/camera")}
           >
-            <Feather name="camera" size={18} color="#fff" />
+            <Icon name="camera" size={18} color="#fff" />
             <Text style={styles.scanBtnText}>Take First Scan</Text>
           </TouchableOpacity>
         </View>

@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -110,7 +110,7 @@ function SlideContent({ item, isActive }: { item: typeof slides[0]; isActive: bo
           style={styles.iconGlowInner}
         >
           <View style={[styles.iconCircle, { backgroundColor: item.accent + "20", borderColor: item.accent + "50" }]}>
-            <Feather name={item.icon} size={56} color={item.accent} />
+            <Icon name={item.icon} size={56} color={item.accent} />
           </View>
         </LinearGradient>
       </Animated.View>
@@ -209,7 +209,7 @@ export default function OnboardingScreen() {
             {activeIndex === slides.length - 1 ? "Get Started" : "Continue"}
           </Text>
           <View style={styles.ctaArrow}>
-            <Feather
+            <Icon
               name={activeIndex === slides.length - 1 ? "check" : "arrow-right"}
               size={18}
               color={currentAccent}

@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
         <View style={styles.heroHeaderRow}>
           <Text style={styles.heroHeaderTitle}>My Profile</Text>
           <TouchableOpacity style={styles.settingsBtn}>
-            <Feather name="settings" size={18} color="rgba(255,255,255,0.7)" />
+            <Icon name="settings" size={18} color="rgba(255,255,255,0.7)" />
           </TouchableOpacity>
         </View>
 
@@ -97,19 +97,19 @@ export default function ProfileScreen() {
               </Text>
             </LinearGradient>
             <View style={[styles.avatarBadge, { backgroundColor: colors.dark }]}>
-              <Feather name="star" size={10} color={user?.isPro ? colors.gold : "rgba(255,255,255,0.4)"} />
+              <Icon name="star" size={10} color={user?.isPro ? colors.gold : "rgba(255,255,255,0.4)"} />
             </View>
           </View>
           <Text style={styles.userName}>{user?.name || "Glowra User"}</Text>
           <Text style={styles.userAge}>{user?.age ? `Age ${user.age}` : ""}</Text>
           {user?.plan === "pro" ? (
             <View style={[styles.proBadge, { backgroundColor: colors.gold + "25", borderColor: colors.gold + "50" }]}>
-              <Feather name="star" size={11} color={colors.gold} />
+              <Icon name="star" size={11} color={colors.gold} />
               <Text style={[styles.proBadgeText, { color: colors.gold }]}>Pro Member</Text>
             </View>
           ) : user?.plan === "plus" ? (
             <View style={[styles.proBadge, { backgroundColor: "#A78BFA25", borderColor: "#A78BFA55" }]}>
-              <Feather name="zap" size={11} color="#A78BFA" />
+              <Icon name="zap" size={11} color="#A78BFA" />
               <Text style={[styles.proBadgeText, { color: "#A78BFA" }]}>Plus Member</Text>
             </View>
           ) : (
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
               style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
               onPress={() => router.push("/subscribe")}
             >
-              <Feather name="zap" size={13} color="#fff" />
+              <Icon name="zap" size={13} color="#fff" />
               <Text style={styles.upgradeBtnText}>Upgrade to Pro</Text>
             </TouchableOpacity>
           )}
@@ -149,7 +149,7 @@ export default function ProfileScreen() {
         <View style={[styles.subSection, { backgroundColor: colors.card }]}>
           <View style={styles.subSectionHeader}>
             <View style={[styles.subSectionIcon, { backgroundColor: colors.gold + "20" }]}>
-              <Feather name="star" size={18} color={colors.gold} />
+              <Icon name="star" size={18} color={colors.gold} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.subSectionTitle, { color: colors.foreground }]}>My Subscription</Text>
@@ -192,11 +192,11 @@ export default function ProfileScreen() {
             onPress={() => router.push("/subscribe")}
             activeOpacity={0.8}
           >
-            <Feather name="refresh-cw" size={16} color={colors.primary} />
+            <Icon name="refresh-cw" size={16} color={colors.primary} />
             <Text style={[styles.subActionText, { color: colors.primary }]}>
               {user?.plan === "free" ? "Upgrade Plan" : "Change Plan"}
             </Text>
-            <Feather name="chevron-right" size={16} color={colors.primary} style={{ marginLeft: "auto" }} />
+            <Icon name="chevron-right" size={16} color={colors.primary} style={{ marginLeft: "auto" }} />
           </TouchableOpacity>
 
           {user?.plan && user.plan !== "free" && (
@@ -207,9 +207,9 @@ export default function ProfileScreen() {
                 onPress={() => router.push("/subscribe")}
                 activeOpacity={0.8}
               >
-                <Feather name="x-circle" size={16} color={colors.destructive} />
+                <Icon name="x-circle" size={16} color={colors.destructive} />
                 <Text style={[styles.subActionText, { color: colors.destructive }]}>Cancel Subscription</Text>
-                <Feather name="chevron-right" size={16} color={colors.destructive} style={{ marginLeft: "auto" }} />
+                <Icon name="chevron-right" size={16} color={colors.destructive} style={{ marginLeft: "auto" }} />
               </TouchableOpacity>
             </>
           )}
@@ -222,13 +222,13 @@ export default function ProfileScreen() {
               {idx > 0 && <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />}
               <TouchableOpacity style={styles.menuItem}>
                 <View style={[styles.menuIcon, { backgroundColor: item.accent + "18" }]}>
-                  <Feather name={item.icon} size={18} color={item.accent} />
+                  <Icon name={item.icon} size={18} color={item.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.menuLabel, { color: colors.foreground }]}>{item.label}</Text>
                   <Text style={[styles.menuSub, { color: colors.taupeLight }]}>{item.sub}</Text>
                 </View>
-                <Feather name="chevron-right" size={16} color={colors.taupeLight} />
+                <Icon name="chevron-right" size={16} color={colors.taupeLight} />
               </TouchableOpacity>
             </React.Fragment>
           ))}
@@ -239,7 +239,7 @@ export default function ProfileScreen() {
           style={[styles.logoutBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={handleLogout}
         >
-          <Feather name="log-out" size={18} color={colors.destructive} />
+          <Icon name="log-out" size={18} color={colors.destructive} />
           <Text style={[styles.logoutText, { color: colors.destructive }]}>Sign Out</Text>
         </TouchableOpacity>
 

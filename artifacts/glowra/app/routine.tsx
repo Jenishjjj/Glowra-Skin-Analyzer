@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 
@@ -158,7 +158,7 @@ function RoutineStep({
             {item.duration}
           </Text>
         </View>
-        <Feather
+        <Icon
           name={expanded ? "chevron-up" : "chevron-down"}
           size={18}
           color={colors.taupeLight}
@@ -166,7 +166,7 @@ function RoutineStep({
       </View>
       {expanded && (
         <View style={[styles.tipRow, { backgroundColor: colors.muted }]}>
-          <Feather name="info" size={14} color={colors.taupe} />
+          <Icon name="info" size={14} color={colors.taupe} />
           <Text style={[styles.tipText, { color: colors.taupe }]}>{item.tip}</Text>
         </View>
       )}
@@ -199,7 +199,7 @@ export default function RoutineScreen() {
             style={[styles.backBtn, { backgroundColor: colors.blush }]}
             onPress={() => router.back()}
           >
-            <Feather name="arrow-left" size={20} color={colors.primary} />
+            <Icon name="arrow-left" size={20} color={colors.primary} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
             My Skin Routine
@@ -209,7 +209,7 @@ export default function RoutineScreen() {
 
         {/* Pro badge */}
         <View style={[styles.proBadge, { backgroundColor: colors.goldLight }]}>
-          <Feather name="star" size={14} color={colors.gold} />
+          <Icon name="star" size={14} color={colors.gold} />
           <Text style={[styles.proBadgeText, { color: colors.gold }]}>
             AI-Personalized Routine — Pro Plan
           </Text>
@@ -251,7 +251,7 @@ export default function RoutineScreen() {
         {tab === "morning" && (
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Feather name="sun" size={18} color={colors.gold} />
+              <Icon name="sun" size={18} color={colors.gold} />
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
                 Morning Routine
               </Text>
@@ -268,7 +268,7 @@ export default function RoutineScreen() {
         {tab === "evening" && (
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Feather name="moon" size={18} color={colors.roseMid} />
+              <Icon name="moon" size={18} color={colors.roseMid} />
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
                 Evening Routine
               </Text>
@@ -299,7 +299,7 @@ export default function RoutineScreen() {
                       { backgroundColor: colors.blush },
                     ]}
                   >
-                    <Feather name={s.icon} size={18} color={colors.primary} />
+                    <Icon name={s.icon} size={18} color={colors.primary} />
                   </View>
                   <View>
                     <Text
@@ -341,7 +341,7 @@ export default function RoutineScreen() {
 
               <View style={styles.proUpsellTopRow}>
                 <View style={styles.proUpsellBadge}>
-                  <Feather name="star" size={11} color={colors.gold} />
+                  <Icon name="star" size={11} color={colors.gold} />
                   <Text style={[styles.proUpsellBadgeText, { color: colors.gold }]}>
                     Glowra Pro
                   </Text>
@@ -365,7 +365,7 @@ export default function RoutineScreen() {
                 ].map((f) => (
                   <View key={f.text} style={styles.proUpsellFeatureRow}>
                     <View style={styles.proUpsellFeatureIcon}>
-                      <Feather name={f.icon} size={14} color={colors.gold} />
+                      <Icon name={f.icon} size={14} color={colors.gold} />
                     </View>
                     <Text style={styles.proUpsellFeatureText}>{f.text}</Text>
                   </View>
@@ -373,9 +373,9 @@ export default function RoutineScreen() {
               </View>
 
               <View style={[styles.proUpsellBtn, { backgroundColor: colors.primary }]}>
-                <Feather name="zap" size={15} color="#fff" />
+                <Icon name="zap" size={15} color="#fff" />
                 <Text style={styles.proUpsellBtnText}>Upgrade to Pro</Text>
-                <Feather name="arrow-right" size={15} color="#fff" />
+                <Icon name="arrow-right" size={15} color="#fff" />
               </View>
             </LinearGradient>
           </TouchableOpacity>

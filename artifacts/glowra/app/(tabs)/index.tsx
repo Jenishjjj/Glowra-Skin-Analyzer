@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -53,7 +53,7 @@ function TipCard({ tip }: { tip: typeof TIPS[0] }) {
         colors={[tip.accent + "20", tip.accent + "08"]}
         style={styles.tipIconWrap}
       >
-        <Feather name={tip.icon} size={22} color={tip.accent} />
+        <Icon name={tip.icon} size={22} color={tip.accent} />
       </LinearGradient>
       <Text style={[styles.tipTitle, { color: colors.foreground }]}>{tip.title}</Text>
       <Text style={[styles.tipDesc, { color: colors.taupe }]}>{tip.desc}</Text>
@@ -113,11 +113,11 @@ export default function HomeScreen() {
           >
             {user?.isPro ? (
               <LinearGradient colors={[colors.gold, "#E8AB4A"]} style={styles.notifGrad}>
-                <Feather name="star" size={16} color="#fff" />
+                <Icon name="star" size={16} color="#fff" />
               </LinearGradient>
             ) : (
               <>
-                <Feather name="bell" size={18} color="rgba(255,255,255,0.8)" />
+                <Icon name="bell" size={18} color="rgba(255,255,255,0.8)" />
                 <View style={styles.notifDot} />
               </>
             )}
@@ -154,13 +154,13 @@ export default function HomeScreen() {
                   </Text>
                 </View>
                 <View style={styles.scanIconCircle}>
-                  <Feather name={canScanToday ? "camera" : "zap"} size={32} color="#fff" />
+                  <Icon name={canScanToday ? "camera" : "zap"} size={32} color="#fff" />
                 </View>
               </View>
 
               <View style={styles.scanFooter}>
                 <View style={styles.scanBadge}>
-                  <Feather name="zap" size={11} color={colors.primary} />
+                  <Icon name="zap" size={11} color={colors.primary} />
                   <Text style={[styles.scanBadgeText, { color: colors.primary }]}>AI Powered</Text>
                 </View>
                 <Text style={styles.scanFreeLabel}>
@@ -214,7 +214,7 @@ export default function HomeScreen() {
                 </View>
               </View>
               <View style={[styles.arrowCircle, { backgroundColor: colors.blush }]}>
-                <Feather name="arrow-right" size={16} color={colors.primary} />
+                <Icon name="arrow-right" size={16} color={colors.primary} />
               </View>
             </TouchableOpacity>
           </AnimatedCard>
@@ -222,7 +222,7 @@ export default function HomeScreen() {
           <AnimatedCard delay={200}>
             <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
               <View style={[styles.emptyIcon, { backgroundColor: colors.blush }]}>
-                <Feather name="camera" size={28} color={colors.primary} />
+                <Icon name="camera" size={28} color={colors.primary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No scans yet</Text>
               <Text style={[styles.emptySub, { color: colors.taupe }]}>Take your first skin scan to see your results here.</Text>
@@ -241,7 +241,7 @@ export default function HomeScreen() {
                 style={styles.proBanner}
               >
                 <View style={[styles.proIconWrap, { backgroundColor: colors.gold + "25", borderColor: colors.gold + "40" }]}>
-                  <Feather name="star" size={20} color={colors.gold} />
+                  <Icon name="star" size={20} color={colors.gold} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.proBannerTitle}>Upgrade to Pro</Text>
@@ -287,7 +287,7 @@ export default function HomeScreen() {
                 onPress={() => router.push(q.route)}
               >
                 <View style={[styles.quickIcon, { backgroundColor: colors.blush }]}>
-                  <Feather name={q.icon} size={20} color={colors.primary} />
+                  <Icon name={q.icon} size={20} color={colors.primary} />
                 </View>
                 <Text style={[styles.quickLabel, { color: colors.foreground }]}>{q.label}</Text>
               </TouchableOpacity>

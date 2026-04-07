@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -70,7 +70,7 @@ function MetricBar({ metricKey, value, delay }: { metricKey: string; value: numb
     <Animated.View style={[styles.metricCard, { backgroundColor: colors.card }, cardStyle]}>
       <View style={styles.metricHeader}>
         <View style={[styles.metricIconWrap, { backgroundColor: meta.accent + "18" }]}>
-          <Feather name={meta.icon as React.ComponentProps<typeof Feather>["name"]} size={16} color={meta.accent} />
+          <Icon name={meta.icon as IconName} size={16} color={meta.accent} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.metricLabel, { color: colors.foreground }]}>{meta.label}</Text>
@@ -106,7 +106,7 @@ function LockedMetricCard({ metricKey, index }: { metricKey: string; index: numb
       {/* Header row — identical layout to visible cards */}
       <View style={styles.metricHeader}>
         <View style={[styles.metricIconWrap, { backgroundColor: meta.accent + "18" }]}>
-          <Feather name={meta.icon as React.ComponentProps<typeof Feather>["name"]} size={16} color={meta.accent} />
+          <Icon name={meta.icon as IconName} size={16} color={meta.accent} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.metricLabel, { color: colors.foreground }]}>{meta.label}</Text>
@@ -125,7 +125,7 @@ function LockedMetricCard({ metricKey, index }: { metricKey: string; index: numb
       {/* Lock pill at bottom */}
       <View style={styles.lockPillRow}>
         <View style={[styles.lockPill, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "25" }]}>
-          <Feather name="lock" size={11} color={colors.primary} />
+          <Icon name="lock" size={11} color={colors.primary} />
           <Text style={[styles.lockPillText, { color: colors.primary }]}>Upgrade to Plus or Pro</Text>
         </View>
       </View>
@@ -145,7 +145,7 @@ function LockedNudge({ onPress }: { onPress: () => void }) {
         style={styles.nudgeCard}
       >
         <View style={[styles.nudgeIcon, { backgroundColor: colors.gold + "20" }]}>
-          <Feather name="lock" size={18} color={colors.gold} />
+          <Icon name="lock" size={18} color={colors.gold} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.nudgeTitle}>3 Analytics Locked</Text>
@@ -201,11 +201,11 @@ function ScoreHero({ score, skinAge, actualAge }: { score: number; skinAge: numb
 
       <View style={styles.ageBadgeRow}>
         <View style={[styles.ageBadge, { backgroundColor: "rgba(212,169,106,0.18)", borderColor: "rgba(212,169,106,0.3)" }]}>
-          <Feather name="calendar" size={12} color={colors.gold} />
+          <Icon name="calendar" size={12} color={colors.gold} />
           <Text style={[styles.ageBadgeText, { color: colors.gold }]}>Skin Age {skinAge}</Text>
         </View>
         <View style={[styles.ageBadge, { backgroundColor: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.12)" }]}>
-          <Feather name="user" size={12} color="rgba(255,255,255,0.6)" />
+          <Icon name="user" size={12} color="rgba(255,255,255,0.6)" />
           <Text style={[styles.ageBadgeText, { color: "rgba(255,255,255,0.6)" }]}>Actual Age {actualAge}</Text>
         </View>
       </View>
@@ -269,11 +269,11 @@ export default function ResultsScreen() {
         {/* Floating nav over hero */}
         <View style={[styles.headerOverlay, { top: topInset + 12 }]}>
           <TouchableOpacity style={styles.headerBtn} onPress={() => router.replace("/(tabs)")}>
-            <Feather name="arrow-left" size={20} color="#fff" />
+            <Icon name="arrow-left" size={20} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Your Results</Text>
           <TouchableOpacity style={styles.headerBtn}>
-            <Feather name="share-2" size={18} color="#fff" />
+            <Icon name="share-2" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -290,7 +290,7 @@ export default function ResultsScreen() {
                 </View>
                 {!isSubscribed && (
                   <View style={[styles.lockedBadge, { backgroundColor: colors.dark }]}>
-                    <Feather name="lock" size={10} color="rgba(255,255,255,0.7)" />
+                    <Icon name="lock" size={10} color="rgba(255,255,255,0.7)" />
                     <Text style={styles.lockedBadgeText}>3 locked</Text>
                   </View>
                 )}
@@ -300,7 +300,7 @@ export default function ResultsScreen() {
             {/* Free-user info strip */}
             {!isSubscribed && (
               <View style={[styles.freeInfoStrip, { backgroundColor: colors.goldLight, borderColor: colors.gold + "50" }]}>
-                <Feather name="info" size={13} color={colors.gold} />
+                <Icon name="info" size={13} color={colors.gold} />
                 <Text style={[styles.freeInfoText, { color: colors.gold }]}>
                   Free plan shows 2 of 5 analytics. Upgrade to see all.
                 </Text>
@@ -350,14 +350,14 @@ export default function ResultsScreen() {
               >
                 <LinearGradient colors={[colors.dark, colors.darkCard]} style={styles.routineCardInner}>
                   <View style={[styles.routineIcon, { backgroundColor: colors.gold + "20" }]}>
-                    <Feather name="sun" size={22} color={colors.gold} />
+                    <Icon name="sun" size={22} color={colors.gold} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.routineTitle}>View My AI Routine</Text>
                     <Text style={styles.routineSub}>Personalized morning & evening routine</Text>
                   </View>
                   <View style={[styles.routineArrow, { backgroundColor: colors.primary }]}>
-                    <Feather name="arrow-right" size={16} color="#fff" />
+                    <Icon name="arrow-right" size={16} color="#fff" />
                   </View>
                 </LinearGradient>
               </TouchableOpacity>
@@ -369,7 +369,7 @@ export default function ResultsScreen() {
                 <LinearGradient colors={["#F9E8E8", "#FFF8F5"]} style={styles.lockedAiGrad}>
                   <View style={styles.lockedRow}>
                     <View style={[styles.lockIconLg, { backgroundColor: colors.primary + "18" }]}>
-                      <Feather name="lock" size={22} color={colors.primary} />
+                      <Icon name="lock" size={22} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.lockedTitle, { color: colors.foreground }]}>Pro Feature</Text>
@@ -382,7 +382,7 @@ export default function ResultsScreen() {
                     style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
                     onPress={() => router.push("/subscribe")}
                   >
-                    <Feather name="star" size={14} color="#fff" />
+                    <Icon name="star" size={14} color="#fff" />
                     <Text style={[styles.upgradeBtnText, { color: "#fff" }]}>Unlock with Pro</Text>
                   </TouchableOpacity>
                 </LinearGradient>
@@ -396,14 +396,14 @@ export default function ResultsScreen() {
               style={[styles.actionBtn, { backgroundColor: colors.dark }]}
               onPress={() => router.push("/camera")}
             >
-              <Feather name="refresh-cw" size={16} color="#fff" />
+              <Icon name="refresh-cw" size={16} color="#fff" />
               <Text style={[styles.actionBtnText, { color: "#fff" }]}>New Scan</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
               onPress={() => router.push("/(tabs)/history")}
             >
-              <Feather name="clock" size={16} color={colors.primary} />
+              <Icon name="clock" size={16} color={colors.primary} />
               <Text style={[styles.actionBtnText, { color: colors.primary }]}>History</Text>
             </TouchableOpacity>
           </View>

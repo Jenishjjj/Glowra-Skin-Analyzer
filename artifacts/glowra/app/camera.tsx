@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -101,7 +101,7 @@ export default function CameraScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 8 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Feather name="x" size={24} color="#fff" />
+          <Icon name="x" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Face Scan</Text>
         <View style={{ width: 40 }} />
@@ -118,7 +118,7 @@ export default function CameraScreen() {
             <View style={[styles.corner, styles.cornerBL, { borderColor: colors.primary }]} />
             <View style={[styles.corner, styles.cornerBR, { borderColor: colors.primary }]} />
             <View style={styles.faceFrameCenter}>
-              <Feather name="user" size={80} color="rgba(232,115,138,0.4)" />
+              <Icon name="user" size={80} color="rgba(232,115,138,0.4)" />
               <Text style={styles.frameHint}>Position your face here</Text>
             </View>
           </Animated.View>
@@ -126,7 +126,7 @@ export default function CameraScreen() {
 
         {/* Tip */}
         <View style={[styles.tipBadge, { backgroundColor: "rgba(232,115,138,0.15)" }]}>
-          <Feather name="info" size={14} color={colors.roseLight} />
+          <Icon name="info" size={14} color={colors.roseLight} />
           <Text style={[styles.tipText, { color: colors.roseLight }]}>
             {TIPS_CAMERA[tipIndex]}
           </Text>
@@ -141,7 +141,7 @@ export default function CameraScreen() {
               style={[styles.retakeBtn, { borderColor: "rgba(255,255,255,0.3)" }]}
               onPress={() => setSelectedImage(null)}
             >
-              <Feather name="refresh-cw" size={20} color="#fff" />
+              <Icon name="refresh-cw" size={20} color="#fff" />
               <Text style={styles.retakeBtnText}>Retake</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -149,7 +149,7 @@ export default function CameraScreen() {
               onPress={analyze}
               activeOpacity={0.85}
             >
-              <Feather name="zap" size={20} color="#fff" />
+              <Icon name="zap" size={20} color="#fff" />
               <Text style={styles.analyzeBtnText}>Analyze Skin</Text>
             </TouchableOpacity>
           </>
@@ -159,7 +159,7 @@ export default function CameraScreen() {
               style={[styles.galleryBtn, { borderColor: "rgba(255,255,255,0.3)" }]}
               onPress={pickImage}
             >
-              <Feather name="image" size={22} color="#fff" />
+              <Icon name="image" size={22} color="#fff" />
               <Text style={styles.galleryBtnText}>Gallery</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -170,7 +170,7 @@ export default function CameraScreen() {
                 colors={[colors.primary, colors.roseDeep]}
                 style={styles.shutterGrad}
               >
-                <Feather name="camera" size={32} color="#fff" />
+                <Icon name="camera" size={32} color="#fff" />
               </LinearGradient>
             </TouchableOpacity>
             <View style={{ width: 72 }} />
