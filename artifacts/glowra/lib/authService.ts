@@ -16,17 +16,23 @@ export async function signUp(email: string, password: string, name: string, age:
     email,
     password,
     options: {
-      data: { name },
+      data: { name, age },
     },
   });
   if (error) throw error;
 
-  // After sign-up the trigger creates the profile; update with extra fields
+  // The DB trigger auto-creates a minimal profile row on INSERT into auth.users.
+  // We upsert here to ensure name + age are stored correctly regardless of timing.
   if (data.user) {
-    await supabase
+    const { error: profileError } = await supabase
       .from("profiles")
-      .upsert({ id: data.user.id, name, age })
-      .eq("id", data.user.id);
+      .upsert(
+        { id: data.user.id, name, age, plan: "free" },
+        { onConflict: "id" }
+      );
+    if (profileError) {
+      console.warn("Profile upsert warning:", profileError.message);
+    }
   }
 
   return data;

@@ -168,18 +168,30 @@ export default function SubscribeScreen() {
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const [upgradeError, setUpgradeError] = useState<string | null>(null);
+
   const handleSubscribe = async (planKey: PlanKey) => {
     if (planKey === "free") {
       router.back();
       return;
     }
     setLoading(planKey);
-    await new Promise((r) => setTimeout(r, 1000));
-    if (user) {
-      await setUser({ ...user, isPro: planKey === "pro" });
+    setUpgradeError(null);
+    try {
+      if (user) {
+        const updatedUser = {
+          ...user,
+          plan: planKey,
+          isPro: planKey === "pro" || planKey === "plus",
+        };
+        await setUser(updatedUser);
+      }
+      router.back();
+    } catch (e: any) {
+      setUpgradeError(e?.message || "Upgrade failed. Please try again.");
+    } finally {
+      setLoading(null);
     }
-    setLoading(null);
-    router.back();
   };
 
   const getCtaLabel = (planKey: PlanKey) => {
@@ -513,6 +525,13 @@ export default function SubscribeScreen() {
           })}
         </View>
 
+        {upgradeError && (
+          <View style={[styles.errorBanner, { backgroundColor: "#FFE8E8" }]}>
+            <Feather name="alert-circle" size={14} color="#C0392B" />
+            <Text style={styles.errorBannerText}>{upgradeError}</Text>
+          </View>
+        )}
+
         {/* Annual deal callout */}
         {billing === "monthly" && (
           <TouchableOpacity onPress={() => setBilling("yearly")}>
@@ -572,6 +591,15 @@ export default function SubscribeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { paddingHorizontal: 20, gap: 20 },
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  errorBannerText: { fontSize: 13, fontFamily: "Nunito_500Medium", color: "#C0392B", flex: 1 },
   headerRow: { flexDirection: "row", justifyContent: "flex-end" },
   closeBtn: {
     width: 40,
