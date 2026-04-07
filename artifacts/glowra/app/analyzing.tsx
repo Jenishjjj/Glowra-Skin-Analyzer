@@ -106,13 +106,15 @@ export default function AnalyzingScreen() {
       }
     }, 35);
 
-    const timeout = setTimeout(async () => {
+    const timeout = setTimeout(() => {
       clearInterval(stepInterval);
       clearInterval(progressInterval);
       const result = generateScanResult(imageUri || "");
       setCurrentScan(result);
-      await addScan(result);
+      // Navigate immediately — don't block on the Supabase save
       router.replace("/results");
+      // Save in the background; never block navigation on network
+      addScan(result).catch((e) => console.warn("addScan error:", e));
     }, 3800);
 
     return () => {

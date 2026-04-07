@@ -147,32 +147,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // ── Scans ─────────────────────────────────────────────────────────────────
+  const withTimeout = <T,>(promise: Promise<T>, ms = 5000): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), ms)
+      ),
+    ]);
+
   const addScan = async (scan: ScanResult) => {
-    // Optimistic local update
+    // Optimistic local update — always happens instantly
     setScanHistory((prev) => [scan, ...prev].slice(0, 50));
 
     const today = new Date().toDateString();
 
     if (user) {
-      // Persist to Supabase
+      // Persist to Supabase (5 s timeout so it never hangs)
       try {
-        await saveScan(user.id, scan);
+        await withTimeout(saveScan(user.id, scan));
       } catch (e) {
         console.warn("Supabase saveScan failed, kept locally:", e);
       }
 
-      // Update scan count
+      // Update scan count locally
       const newUser: User = {
         ...user,
         scansToday: user.lastScanDate === today ? user.scansToday + 1 : 1,
         lastScanDate: today,
       };
       setUserState(newUser);
+
+      // Sync profile (5 s timeout)
       try {
-        await updateProfile(user.id, {
-          scans_today: newUser.scansToday,
-          last_scan_date: newUser.lastScanDate,
-        });
+        await withTimeout(
+          updateProfile(user.id, {
+            scans_today: newUser.scansToday,
+            last_scan_date: newUser.lastScanDate,
+          })
+        );
       } catch (e) {
         console.warn("Profile update failed:", e);
       }
