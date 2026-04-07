@@ -102,45 +102,32 @@ function LockedMetricCard({ metricKey, index }: { metricKey: string; index: numb
   const style = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ translateY: translateY.value }] }));
 
   return (
-    <Animated.View style={[styles.lockedMetricCard, { backgroundColor: colors.card }, style]}>
-      {/* Dimmed background content */}
-      <View style={styles.lockedBg}>
-        <View style={styles.metricHeader}>
-          <View style={[styles.metricIconWrap, { backgroundColor: meta.accent + "0D" }]}>
-            <Feather name={meta.icon as React.ComponentProps<typeof Feather>["name"]} size={16} color={meta.accent + "50"} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.metricLabel, { color: colors.foreground + "35" }]}>{meta.label}</Text>
-            <Text style={[styles.metricDesc, { color: colors.taupe + "35" }]}>{meta.desc}</Text>
-          </View>
-          <View style={styles.metricRight}>
-            {/* Redacted score */}
-            <View style={[styles.redactedScore, { backgroundColor: colors.muted }]} />
-            <View style={[styles.redactedGrade, { backgroundColor: colors.muted }]} />
-          </View>
+    <Animated.View style={[styles.metricCard, { backgroundColor: colors.card }, style]}>
+      {/* Header row — identical layout to visible cards */}
+      <View style={styles.metricHeader}>
+        <View style={[styles.metricIconWrap, { backgroundColor: meta.accent + "18" }]}>
+          <Feather name={meta.icon as React.ComponentProps<typeof Feather>["name"]} size={16} color={meta.accent} />
         </View>
-        {/* Redacted bar */}
-        <View style={[styles.barTrack, { backgroundColor: colors.muted }]}>
-          <View style={[styles.barFill, { width: "60%", backgroundColor: colors.border }]} />
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.metricLabel, { color: colors.foreground }]}>{meta.label}</Text>
+          <Text style={[styles.metricDesc, { color: colors.taupe }]}>{meta.desc}</Text>
+        </View>
+        {/* Blurred score area */}
+        <View style={styles.metricRight}>
+          <View style={[styles.blurBlock, { width: 40, height: 24, borderRadius: 6, backgroundColor: colors.muted, marginBottom: 5 }]} />
+          <View style={[styles.blurBlock, { width: 56, height: 12, borderRadius: 4, backgroundColor: colors.border }]} />
         </View>
       </View>
-
-      {/* Lock overlay */}
-      <View style={styles.lockOverlay}>
-        <LinearGradient
-          colors={["rgba(255,248,245,0.88)", "rgba(255,248,245,0.96)"]}
-          style={styles.lockOverlayGrad}
-        >
-          <View style={[styles.lockIconCircle, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "30" }]}>
-            <Feather name="lock" size={14} color={colors.primary} />
-          </View>
-          <Text style={[styles.lockLabel, { color: colors.foreground }]}>
-            {meta.label} Locked
-          </Text>
-          <Text style={[styles.lockSub, { color: colors.taupe }]}>
-            Upgrade to Plus or Pro
-          </Text>
-        </LinearGradient>
+      {/* Blurred bar row */}
+      <View style={[styles.barTrack, { backgroundColor: colors.muted }]}>
+        <View style={[styles.barFill, { width: "65%", backgroundColor: colors.border, opacity: 0.6 }]} />
+      </View>
+      {/* Lock pill at bottom */}
+      <View style={styles.lockPillRow}>
+        <View style={[styles.lockPill, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "25" }]}>
+          <Feather name="lock" size={11} color={colors.primary} />
+          <Text style={[styles.lockPillText, { color: colors.primary }]}>Upgrade to Plus or Pro</Text>
+        </View>
       </View>
     </Animated.View>
   );
@@ -479,16 +466,11 @@ const styles = StyleSheet.create({
   barTrack: { height: 8, borderRadius: 4, overflow: "hidden" },
   barFill: { height: "100%", borderRadius: 4 },
 
-  // Locked metric card
-  lockedMetricCard: { borderRadius: 18, overflow: "hidden", minHeight: 100 },
-  lockedBg: { padding: 16, gap: 12, opacity: 0.4 },
-  redactedScore: { width: 44, height: 22, borderRadius: 6, marginBottom: 4 },
-  redactedGrade: { width: 60, height: 10, borderRadius: 4 },
-  lockOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
-  lockOverlayGrad: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
-  lockIconCircle: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-  lockLabel: { fontSize: 14, fontFamily: "Nunito_700Bold" },
-  lockSub: { fontSize: 11, fontFamily: "Nunito_400Regular" },
+  // Locked metric card (reuses metricCard style)
+  blurBlock: {},
+  lockPillRow: { alignItems: "flex-start" },
+  lockPill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, borderWidth: 1 },
+  lockPillText: { fontSize: 11, fontFamily: "Nunito_600SemiBold" },
 
   // Nudge card
   nudgeWrap: { marginTop: 4 },
