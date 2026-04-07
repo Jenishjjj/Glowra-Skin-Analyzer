@@ -28,6 +28,7 @@ const STEPS = [
   "Measuring hydration levels...",
   "Checking pigmentation...",
   "Evaluating pore size...",
+  "Testing skin elasticity...",
   "Calculating skin age...",
   "Generating your report...",
 ];
@@ -48,6 +49,7 @@ function generateScanResult(imageUri: string): ScanResult {
     pigmentation: rand(20, 80),
     texture: rand(50, 95),
     pores: rand(30, 85),
+    elasticity: rand(40, 92),
     imageUri: imageUri || undefined,
   };
 }

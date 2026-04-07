@@ -116,7 +116,7 @@ function RoutineStep({
   item,
   isAM,
 }: {
-  item: (typeof AM_ROUTINE)[0];
+  item: (typeof AM_ROUTINE)[0] | (typeof PM_ROUTINE)[0];
   isAM: boolean;
 }) {
   const colors = useColors();

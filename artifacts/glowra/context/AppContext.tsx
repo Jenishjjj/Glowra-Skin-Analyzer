@@ -11,6 +11,7 @@ export type ScanResult = {
   pigmentation: number;
   texture: number;
   pores: number;
+  elasticity: number;
   imageUri?: string;
 };
 

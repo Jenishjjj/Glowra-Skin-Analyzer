@@ -16,6 +16,7 @@ import {
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withSpring,
@@ -56,8 +57,8 @@ export default function AuthScreen() {
   useEffect(() => {
     logoScale.value = withSpring(1, { damping: 14 });
     logoOpacity.value = withTiming(1, { duration: 500 });
-    cardY.value = withSpring(0, { damping: 18, delay: 200 });
-    cardOpacity.value = withTiming(1, { duration: 500, delay: 200 });
+    cardY.value = withDelay(200, withSpring(0, { damping: 18 }));
+    cardOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
     glowScale.value = withRepeat(
       withSequence(withTiming(1.15, { duration: 2000 }), withTiming(1, { duration: 2000 })),
       -1
