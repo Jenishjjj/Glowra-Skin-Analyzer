@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Platform,
   ScrollView,
@@ -10,32 +10,57 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
 const MENU_ITEMS = [
-  { icon: "bell" as const, label: "Notifications", sub: "Manage alerts" },
-  { icon: "shield" as const, label: "Privacy & Data", sub: "Your data settings" },
-  { icon: "help-circle" as const, label: "Help & Support", sub: "FAQ and contact" },
-  { icon: "info" as const, label: "About Glowra", sub: "Version 1.0.0" },
+  { icon: "bell" as const, label: "Notifications", sub: "Manage alerts", accent: "#60B4FF" },
+  { icon: "shield" as const, label: "Privacy & Data", sub: "Your data settings", accent: "#4CAF50" },
+  { icon: "help-circle" as const, label: "Help & Support", sub: "FAQ and contact", accent: "#A78BFA" },
+  { icon: "info" as const, label: "About Glowra", sub: "Version 1.0.0", accent: "#E8738A" },
 ];
 
 export default function ProfileScreen() {
   const colors = useColors();
   const router = useRouter();
-  const { user, scanHistory, setIsLoggedIn, setUser } = useApp();
+  const { user, scanHistory, setIsLoggedIn } = useApp();
   const insets = useSafeAreaInsets();
 
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const glowOp = useSharedValue(0.25);
+  const avatarScale = useSharedValue(0.8);
+  const avatarOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    avatarScale.value = withSpring(1, { damping: 13 });
+    avatarOpacity.value = withTiming(1, { duration: 500 });
+    glowOp.value = withRepeat(
+      withSequence(withTiming(0.5, { duration: 2000 }), withTiming(0.25, { duration: 2000 })),
+      -1
+    );
+  }, []);
+
+  const avatarStyle = useAnimatedStyle(() => ({
+    opacity: avatarOpacity.value,
+    transform: [{ scale: avatarScale.value }],
+  }));
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glowOp.value }));
+
   const avgScore =
     scanHistory.length > 0
-      ? (
-          scanHistory.reduce((s, r) => s + r.skinScore, 0) / scanHistory.length
-        ).toFixed(1)
+      ? (scanHistory.reduce((s, r) => s + r.skinScore, 0) / scanHistory.length).toFixed(1)
       : "—";
 
   const handleLogout = async () => {
@@ -45,93 +70,94 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.cream }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingTop: topInset + 16, paddingBottom: bottomInset + 24 },
-        ]}
-      >
-        {/* Avatar and name */}
-        <View style={styles.avatarSection}>
-          <LinearGradient
-            colors={[colors.primary, colors.roseDeep]}
-            style={styles.avatar}
-          >
-            <Text style={styles.avatarInitial}>
-              {user?.name?.charAt(0)?.toUpperCase() || "G"}
-            </Text>
-          </LinearGradient>
-          <Text style={[styles.userName, { color: colors.foreground }]}>
-            {user?.name || "Glowra User"}
-          </Text>
-          <Text style={[styles.userAge, { color: colors.taupe }]}>
-            {user?.age ? `Age ${user.age}` : ""}
-          </Text>
-          {user?.isPro ? (
-            <View style={[styles.proBadge, { backgroundColor: colors.goldLight }]}>
-              <Feather name="star" size={12} color={colors.gold} />
-              <Text style={[styles.proBadgeText, { color: colors.gold }]}>
-                Pro Member
+      {/* Dark hero header */}
+      <View style={[styles.darkHero, { paddingTop: topInset + 16 }]}>
+        <LinearGradient colors={[colors.dark, colors.darkSurface]} style={StyleSheet.absoluteFill} />
+
+        {/* Decorative glow */}
+        <Animated.View style={[styles.glowOrb, glowStyle]} />
+
+        {/* Header row */}
+        <View style={styles.heroHeaderRow}>
+          <Text style={styles.heroHeaderTitle}>My Profile</Text>
+          <TouchableOpacity style={styles.settingsBtn}>
+            <Feather name="settings" size={18} color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Avatar */}
+        <Animated.View style={[styles.avatarSection, avatarStyle]}>
+          <View style={styles.avatarWrap}>
+            <LinearGradient
+              colors={[colors.primary, colors.roseDeep, "#8B2040"]}
+              style={styles.avatar}
+            >
+              <Text style={styles.avatarInitial}>
+                {user?.name?.charAt(0)?.toUpperCase() || "G"}
               </Text>
+            </LinearGradient>
+            <View style={[styles.avatarBadge, { backgroundColor: colors.dark }]}>
+              <Feather name="star" size={10} color={user?.isPro ? colors.gold : "rgba(255,255,255,0.4)"} />
+            </View>
+          </View>
+          <Text style={styles.userName}>{user?.name || "Glowra User"}</Text>
+          <Text style={styles.userAge}>{user?.age ? `Age ${user.age}` : ""}</Text>
+          {user?.isPro ? (
+            <View style={[styles.proBadge, { backgroundColor: colors.gold + "25", borderColor: colors.gold + "50" }]}>
+              <Feather name="star" size={11} color={colors.gold} />
+              <Text style={[styles.proBadgeText, { color: colors.gold }]}>Pro Member</Text>
             </View>
           ) : (
             <TouchableOpacity
               style={[styles.upgradeBtn, { backgroundColor: colors.primary }]}
               onPress={() => router.push("/subscribe")}
             >
-              <Feather name="star" size={14} color="#fff" />
-              <Text style={[styles.upgradeBtnText, { color: "#fff" }]}>
-                Upgrade to Pro
-              </Text>
+              <Feather name="zap" size={13} color="#fff" />
+              <Text style={styles.upgradeBtnText}>Upgrade to Pro</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </Animated.View>
 
-        {/* Stats */}
-        <View style={[styles.statsCard, { backgroundColor: colors.card }]}>
+        {/* Stats row in dark hero */}
+        <View style={styles.statsRow}>
           {[
             { label: "Total Scans", value: String(scanHistory.length) },
-            { label: "Avg Skin Score", value: avgScore },
+            { label: "Avg Score", value: avgScore },
             { label: "Plan", value: user?.isPro ? "Pro" : "Free" },
           ].map((s, i) => (
             <React.Fragment key={s.label}>
-              {i > 0 && (
-                <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-              )}
+              {i > 0 && <View style={styles.statDivider} />}
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: colors.primary }]}>
-                  {s.value}
-                </Text>
-                <Text style={[styles.statLabel, { color: colors.taupe }]}>
-                  {s.label}
-                </Text>
+                <Text style={styles.statValue}>{s.value}</Text>
+                <Text style={styles.statLabel}>{s.label}</Text>
               </View>
             </React.Fragment>
           ))}
         </View>
+      </View>
 
-        {/* Subscription Card */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scroll, { paddingBottom: bottomInset + 24 }]}
+      >
+        {/* Upgrade card for free users */}
         {!user?.isPro && (
-          <TouchableOpacity onPress={() => router.push("/subscribe")}>
+          <TouchableOpacity onPress={() => router.push("/subscribe")} activeOpacity={0.88}>
             <LinearGradient
-              colors={[colors.primary, colors.roseDeep]}
+              colors={[colors.dark, colors.darkCard]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.subscribeCard}
             >
-              <View>
-                <Text style={[styles.subscribeTitle, { color: "#fff" }]}>
-                  Unlock Glowra Pro
-                </Text>
-                <Text style={[styles.subscribeSub, { color: "rgba(255,255,255,0.8)" }]}>
-                  Unlimited scans, AI routines & more
-                </Text>
+              <View style={[styles.subIconWrap, { backgroundColor: colors.gold + "20" }]}>
+                <Feather name="star" size={20} color={colors.gold} />
               </View>
-              <View style={[styles.subscribePrice, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
-                <Text style={[styles.subscribePriceText, { color: "#fff" }]}>
-                  $9.99/mo
-                </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.subscribeTitle}>Unlock Glowra Pro</Text>
+                <Text style={styles.subscribeSub}>Unlimited scans · AI routine · Deep insights</Text>
+              </View>
+              <View style={[styles.subscribeArrow, { backgroundColor: colors.primary }]}>
+                <Feather name="arrow-right" size={14} color="#fff" />
               </View>
             </LinearGradient>
           </TouchableOpacity>
@@ -141,24 +167,16 @@ export default function ProfileScreen() {
         <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
           {MENU_ITEMS.map((item, idx) => (
             <React.Fragment key={item.label}>
-              {idx > 0 && (
-                <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
-              )}
+              {idx > 0 && <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />}
               <TouchableOpacity style={styles.menuItem}>
-                <View
-                  style={[styles.menuIcon, { backgroundColor: colors.blush }]}
-                >
-                  <Feather name={item.icon} size={18} color={colors.primary} />
+                <View style={[styles.menuIcon, { backgroundColor: item.accent + "18" }]}>
+                  <Feather name={item.icon} size={18} color={item.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.menuLabel, { color: colors.foreground }]}>
-                    {item.label}
-                  </Text>
-                  <Text style={[styles.menuSub, { color: colors.taupeLight }]}>
-                    {item.sub}
-                  </Text>
+                  <Text style={[styles.menuLabel, { color: colors.foreground }]}>{item.label}</Text>
+                  <Text style={[styles.menuSub, { color: colors.taupeLight }]}>{item.sub}</Text>
                 </View>
-                <Feather name="chevron-right" size={18} color={colors.taupeLight} />
+                <Feather name="chevron-right" size={16} color={colors.taupeLight} />
               </TouchableOpacity>
             </React.Fragment>
           ))}
@@ -170,9 +188,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
         >
           <Feather name="log-out" size={18} color={colors.destructive} />
-          <Text style={[styles.logoutText, { color: colors.destructive }]}>
-            Sign Out
-          </Text>
+          <Text style={[styles.logoutText, { color: colors.destructive }]}>Sign Out</Text>
         </TouchableOpacity>
 
         <Text style={[styles.version, { color: colors.taupeLight }]}>
@@ -185,100 +201,46 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { paddingHorizontal: 20, gap: 20 },
-  avatarSection: { alignItems: "center", gap: 8, paddingVertical: 8 },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
+  darkHero: { paddingHorizontal: 20, paddingBottom: 0, overflow: "hidden" },
+  glowOrb: { position: "absolute", width: 260, height: 260, borderRadius: 130, backgroundColor: "rgba(232,115,138,0.2)", top: -60, right: -40 },
+  heroHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  heroHeaderTitle: { fontSize: 16, fontFamily: "Nunito_600SemiBold", color: "rgba(255,255,255,0.7)" },
+  settingsBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
+  avatarSection: { alignItems: "center", gap: 8, paddingBottom: 20 },
+  avatarWrap: { position: "relative" },
+  avatar: { width: 96, height: 96, borderRadius: 48, alignItems: "center", justifyContent: "center" },
   avatarInitial: { fontSize: 40, fontFamily: "Nunito_800ExtraBold", color: "#fff" },
-  userName: { fontSize: 24, fontFamily: "Nunito_700Bold" },
-  userAge: { fontSize: 14, fontFamily: "Nunito_400Regular" },
-  proBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginTop: 4,
-  },
+  avatarBadge: { position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  userName: { fontSize: 22, fontFamily: "Nunito_700Bold", color: "#fff" },
+  userAge: { fontSize: 13, fontFamily: "Nunito_400Regular", color: "rgba(255,255,255,0.5)" },
+  proBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1, marginTop: 4 },
   proBadgeText: { fontSize: 13, fontFamily: "Nunito_600SemiBold" },
-  upgradeBtn: {
+  upgradeBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 18, paddingVertical: 9, borderRadius: 20, marginTop: 4 },
+  upgradeBtnText: { fontSize: 13, fontFamily: "Nunito_600SemiBold", color: "#fff" },
+  statsRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 4,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.06)",
+    paddingVertical: 18,
   },
-  upgradeBtnText: { fontSize: 14, fontFamily: "Nunito_600SemiBold" },
-  statsCard: {
-    flexDirection: "row",
-    borderRadius: 20,
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "space-around",
-    shadowColor: "#E8738A",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statItem: { alignItems: "center", gap: 2 },
-  statValue: { fontSize: 24, fontFamily: "Nunito_800ExtraBold" },
-  statLabel: { fontSize: 12, fontFamily: "Nunito_400Regular" },
-  statDivider: { width: 1, height: 40 },
-  subscribeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 20,
-    borderRadius: 20,
-  },
-  subscribeTitle: { fontSize: 17, fontFamily: "Nunito_700Bold" },
-  subscribeSub: { fontSize: 13, fontFamily: "Nunito_400Regular", marginTop: 2 },
-  subscribePrice: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
-  subscribePriceText: { fontSize: 14, fontFamily: "Nunito_700Bold" },
-  menuCard: {
-    borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: "#E8738A",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    padding: 16,
-  },
-  menuIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  statItem: { flex: 1, alignItems: "center", gap: 3 },
+  statValue: { fontSize: 22, fontFamily: "Nunito_800ExtraBold", color: "#fff" },
+  statLabel: { fontSize: 11, fontFamily: "Nunito_400Regular", color: "rgba(255,255,255,0.45)" },
+  statDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.1)" },
+  scroll: { paddingHorizontal: 20, paddingTop: 20, gap: 16 },
+  subscribeCard: { flexDirection: "row", alignItems: "center", gap: 14, padding: 18, borderRadius: 20 },
+  subIconWrap: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  subscribeTitle: { fontSize: 15, fontFamily: "Nunito_700Bold", color: "#fff" },
+  subscribeSub: { fontSize: 12, fontFamily: "Nunito_400Regular", color: "rgba(255,255,255,0.5)", marginTop: 2 },
+  subscribeArrow: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+  menuCard: { borderRadius: 20, overflow: "hidden" },
+  menuItem: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
+  menuIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   menuLabel: { fontSize: 15, fontFamily: "Nunito_600SemiBold" },
-  menuSub: { fontSize: 12, fontFamily: "Nunito_400Regular" },
+  menuSub: { fontSize: 12, fontFamily: "Nunito_400Regular", marginTop: 1 },
   menuDivider: { height: 1, marginLeft: 70 },
-  logoutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    height: 54,
-    borderRadius: 27,
-    borderWidth: 1,
-  },
+  logoutBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 54, borderRadius: 27, borderWidth: 1 },
   logoutText: { fontSize: 16, fontFamily: "Nunito_600SemiBold" },
   version: { fontSize: 12, fontFamily: "Nunito_400Regular", textAlign: "center" },
 });

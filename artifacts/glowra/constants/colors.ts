@@ -27,7 +27,7 @@ const colors = {
     border: "#F0DDD9",
     input: "#F0DDD9",
 
-    // Custom tokens
+    // Custom brand tokens
     surface: "#FFFFFF",
     surfaceElevated: "#FDF3F0",
     gold: "#D4A96A",
@@ -40,6 +40,18 @@ const colors = {
     taupe: "#9B7B7B",
     taupeLight: "#C4A8A8",
     textLight: "#6B4F4F",
+
+    // Dark/premium tokens for hero sections
+    dark: "#1C0B10",
+    darkSurface: "#2A1118",
+    darkCard: "#3D1825",
+    darkAccent: "#5C2030",
+    darkText: "rgba(255,255,255,0.95)",
+    darkSubtext: "rgba(255,255,255,0.55)",
+    darkBorder: "rgba(255,255,255,0.08)",
+    darkMuted: "rgba(255,255,255,0.12)",
+    glow: "rgba(232,115,138,0.4)",
+    glowStrong: "rgba(232,115,138,0.65)",
   },
 
   radius: 16,
