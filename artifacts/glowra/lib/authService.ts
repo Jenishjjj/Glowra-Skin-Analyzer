@@ -2,6 +2,7 @@ import { supabase } from "./supabase";
 
 export type Profile = {
   id: string;
+  email: string;
   name: string;
   age: number;
   plan: "free" | "plus" | "pro";
@@ -27,7 +28,7 @@ export async function signUp(email: string, password: string, name: string, age:
     const { error: profileError } = await supabase
       .from("profiles")
       .upsert(
-        { id: data.user.id, name, age, plan: "free" },
+        { id: data.user.id, email, name, age, plan: "free" },
         { onConflict: "id" }
       );
     if (profileError) {

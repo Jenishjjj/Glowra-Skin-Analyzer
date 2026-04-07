@@ -9,15 +9,19 @@ create extension if not exists "uuid-ossp";
 -- ── profiles ──────────────────────────────────────────────────────────────────
 -- Stores extra user data beyond Supabase Auth
 create table if not exists public.profiles (
-  id           uuid primary key references auth.users(id) on delete cascade,
-  name         text not null default 'Glowra User',
-  age          int  not null default 25,
-  plan         text not null default 'free'  check (plan in ('free','plus','pro')),
-  scans_today  int  not null default 0,
+  id             uuid primary key references auth.users(id) on delete cascade,
+  email          text not null default '',
+  name           text not null default 'Glowra User',
+  age            int  not null default 25,
+  plan           text not null default 'free'  check (plan in ('free','plus','pro')),
+  scans_today    int  not null default 0,
   last_scan_date text not null default '',
-  created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now()
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
 );
+
+-- If you already ran this schema without the email column, run this once:
+-- alter table public.profiles add column if not exists email text not null default '';
 
 -- Row-level security
 alter table public.profiles enable row level security;

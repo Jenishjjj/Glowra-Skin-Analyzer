@@ -28,6 +28,7 @@ export type ScanResult = {
 
 type User = {
   id: string;
+  email: string;
   name: string;
   age: number;
   isPro: boolean;
@@ -58,6 +59,7 @@ const AppContext = createContext<AppContextType | null>(null);
 function profileToUser(profile: Profile, userId: string): User {
   return {
     id: userId,
+    email: profile.email ?? "",
     name: profile.name,
     age: profile.age,
     plan: profile.plan,
@@ -125,6 +127,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUserState(u);
     if (u.id) {
       await updateProfile(u.id, {
+        email: u.email,
         name: u.name,
         age: u.age,
         plan: u.plan,

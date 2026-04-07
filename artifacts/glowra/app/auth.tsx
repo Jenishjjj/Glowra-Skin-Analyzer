@@ -97,7 +97,20 @@ export default function AuthScreen() {
       // onAuthStateChange in AppContext will update user state
       router.replace("/(tabs)");
     } catch (e: any) {
-      setError(e?.message || "Something went wrong. Please try again.");
+      const msg: string = e?.message ?? "";
+      if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many")) {
+        setError(
+          "Too many sign-up attempts. Please wait a few minutes, then try again. (Supabase limits test emails per hour.)"
+        );
+      } else if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already been registered")) {
+        setError("This email is already registered. Try signing in instead.");
+      } else if (msg.toLowerCase().includes("invalid email")) {
+        setError("Please enter a valid email address.");
+      } else if (msg.toLowerCase().includes("password")) {
+        setError("Password must be at least 6 characters.");
+      } else {
+        setError(msg || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
