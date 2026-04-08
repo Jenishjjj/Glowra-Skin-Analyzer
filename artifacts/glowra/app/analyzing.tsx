@@ -19,6 +19,7 @@ import Animated, {
 
 import { useApp, ScanResult } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { analyzeSkinWithAI } from "@/lib/aiService";
 
 const { width } = Dimensions.get("window");
 
@@ -33,7 +34,7 @@ const STEPS = [
   "Generating your report...",
 ];
 
-function generateScanResult(imageUri: string): ScanResult {
+function fallbackScanResult(imageUri: string): ScanResult {
   const rand = (min: number, max: number) =>
     Math.floor(Math.random() * (max - min + 1)) + min;
   const skinScore = rand(5, 9);
@@ -61,6 +62,8 @@ export default function AnalyzingScreen() {
   const { addScan, setCurrentScan } = useApp();
   const [stepIndex, setStepIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("Analyzing your skin with AI...");
+  const analysisStarted = useRef(false);
 
   const rotate = useSharedValue(0);
   const scale1 = useSharedValue(1);
@@ -88,39 +91,88 @@ export default function AnalyzingScreen() {
   }, []);
 
   useEffect(() => {
+    if (analysisStarted.current) return;
+    analysisStarted.current = true;
+
     let currentStep = 0;
     let currentProgress = 0;
-    const stepDuration = 3500 / STEPS.length;
+    let analysisComplete = false;
+    let minTimePassed = false;
+
+    const MIN_DURATION = 3500;
 
     const stepInterval = setInterval(() => {
       currentStep += 1;
       if (currentStep < STEPS.length) {
         setStepIndex(currentStep);
       }
-    }, stepDuration);
+    }, MIN_DURATION / STEPS.length);
 
     const progressInterval = setInterval(() => {
-      currentProgress += 1;
-      if (currentProgress <= 100) {
-        setProgress(currentProgress);
+      if (analysisComplete && currentProgress < 100) {
+        currentProgress = Math.min(100, currentProgress + 3);
+      } else if (!analysisComplete && currentProgress < 88) {
+        currentProgress += 1;
       }
+      setProgress(Math.floor(currentProgress));
     }, 35);
 
-    const timeout = setTimeout(() => {
+    const minTimer = setTimeout(() => {
+      minTimePassed = true;
+    }, MIN_DURATION);
+
+    const runAnalysis = async () => {
+      let aiResult: Partial<ScanResult> | null = null;
+
+      if (imageUri) {
+        try {
+          setStatusText("Running AI skin analysis...");
+          aiResult = await analyzeSkinWithAI(imageUri);
+          setStatusText("AI analysis complete!");
+        } catch (err) {
+          console.warn("AI analysis failed, using smart estimation:", err);
+          setStatusText("Finalizing your results...");
+        }
+      }
+
+      analysisComplete = true;
+
+      const waitForMin = () =>
+        new Promise<void>((resolve) => {
+          if (minTimePassed) return resolve();
+          const check = setInterval(() => {
+            if (minTimePassed) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 100);
+        });
+
+      await waitForMin();
+
       clearInterval(stepInterval);
       clearInterval(progressInterval);
-      const result = generateScanResult(imageUri || "");
+
+      const base = fallbackScanResult(imageUri || "");
+      const result: ScanResult = {
+        ...base,
+        ...(aiResult ?? {}),
+        id: base.id,
+        date: base.date,
+        imageUri: imageUri || undefined,
+      };
+
       setCurrentScan(result);
-      // Navigate immediately — don't block on the Supabase save
       router.replace("/results");
-      // Save in the background; never block navigation on network
       addScan(result).catch((e) => console.warn("addScan error:", e));
-    }, 3800);
+    };
+
+    runAnalysis();
 
     return () => {
       clearInterval(stepInterval);
       clearInterval(progressInterval);
-      clearTimeout(timeout);
+      clearTimeout(minTimer);
     };
   }, []);
 
@@ -142,7 +194,6 @@ export default function AnalyzingScreen() {
       />
 
       <View style={styles.content}>
-        {/* Animated circles */}
         <View style={styles.circleContainer}>
           <Animated.View
             style={[
@@ -158,12 +209,7 @@ export default function AnalyzingScreen() {
               { borderColor: colors.primary, borderStyle: "dashed" },
             ]}
           />
-          <Animated.View
-            style={[
-              styles.scanLine,
-              rotateStyle,
-            ]}
-          >
+          <Animated.View style={[styles.scanLine, rotateStyle]}>
             <LinearGradient
               colors={[colors.primary, "transparent"]}
               style={styles.scanLineGrad}
@@ -185,7 +231,6 @@ export default function AnalyzingScreen() {
           {STEPS[stepIndex]}
         </Text>
 
-        {/* Progress Bar */}
         <View style={[styles.progressBar, { backgroundColor: colors.blush }]}>
           <Animated.View
             style={[
@@ -198,8 +243,14 @@ export default function AnalyzingScreen() {
           />
         </View>
 
+        <View style={[styles.aiBadge, { backgroundColor: colors.card }]}>
+          <Text style={[styles.aiBadgeText, { color: colors.primary }]}>
+            ✦ Powered by Gemini AI
+          </Text>
+        </View>
+
         <Text style={[styles.hint, { color: colors.taupe }]}>
-          Our AI is working its magic on your skin data — this takes just a few seconds.
+          {statusText}
         </Text>
       </View>
     </View>
@@ -215,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 40,
-    gap: 24,
+    gap: 20,
   },
   circleContainer: {
     width: CIRCLE_SIZE,
@@ -280,6 +331,21 @@ const styles = StyleSheet.create({
   progressFill: {
     height: "100%",
     borderRadius: 3,
+  },
+  aiBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: "#E8738A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  aiBadgeText: {
+    fontSize: 13,
+    fontFamily: "Nunito_700Bold",
+    letterSpacing: 0.3,
   },
   hint: {
     fontSize: 13,

@@ -2,8 +2,9 @@ import { Icon, IconName } from "@/components/Icon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Platform,
   ScrollView,
   StyleSheet,
@@ -15,110 +16,22 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { generateRoutineWithAI, RoutineData, RoutineStep } from "@/lib/aiService";
 
-const AM_ROUTINE = [
-  {
-    step: 1,
-    title: "Gentle Cleanser",
-    product: "Use a mild foaming cleanser",
-    duration: "60 sec",
-    icon: "droplets" as const,
-    tip: "Wash with lukewarm water — hot water strips natural oils.",
-  },
-  {
-    step: 2,
-    title: "Vitamin C Serum",
-    product: "Apply 3-4 drops on damp skin",
-    duration: "30 sec",
-    icon: "sun" as const,
-    tip: "Vitamin C brightens and protects against UV damage.",
-  },
-  {
-    step: 3,
-    title: "Hydrating Moisturizer",
-    product: "Look for hyaluronic acid",
-    duration: "30 sec",
-    icon: "cloud" as const,
-    tip: "Apply while skin is still slightly damp for best absorption.",
-  },
-  {
-    step: 4,
-    title: "SPF 50+ Sunscreen",
-    product: "Broad spectrum, lightweight",
-    duration: "45 sec",
-    icon: "shield" as const,
-    tip: "The most important step — reapply every 2 hours outdoors.",
-  },
-];
+const STEP_ICONS: IconName[] = ["droplets", "sun", "cloud", "shield", "star"];
+const AM_ICONS: IconName[] = ["droplets", "sun", "cloud", "shield"];
+const PM_ICONS: IconName[] = ["moon", "droplet", "star", "heart", "activity"];
 
-const PM_ROUTINE = [
-  {
-    step: 1,
-    title: "Double Cleanse",
-    product: "Oil cleanser + gentle foaming",
-    duration: "90 sec",
-    icon: "moon" as const,
-    tip: "Oil cleanser removes sunscreen and makeup thoroughly.",
-  },
-  {
-    step: 2,
-    title: "Toner",
-    product: "Hydrating, alcohol-free",
-    duration: "20 sec",
-    icon: "droplet" as const,
-    tip: "Balance skin pH and prep for actives.",
-  },
-  {
-    step: 3,
-    title: "Retinol Serum",
-    product: "Start with 0.025% - 0.05%",
-    duration: "30 sec",
-    icon: "star" as const,
-    tip: "Use only at night. Build up slowly to avoid irritation.",
-  },
-  {
-    step: 4,
-    title: "Rich Night Cream",
-    product: "Peptides + ceramides",
-    duration: "45 sec",
-    icon: "heart" as const,
-    tip: "Night is when skin repairs. Give it what it needs.",
-  },
-];
+const routineCache = new Map<string, RoutineData>();
 
-const AI_SUGGESTIONS = [
-  {
-    icon: "droplet" as const,
-    category: "Hydration",
-    title: "Increase water intake",
-    desc: "Your hydration score suggests dehydrated skin. Drink 2L+ daily and consider a hyaluronic acid serum.",
-  },
-  {
-    icon: "sun" as const,
-    category: "Pigmentation",
-    title: "Add Niacinamide",
-    desc: "Niacinamide 10% helps fade dark spots and even skin tone. Apply after toner, before moisturizer.",
-  },
-  {
-    icon: "layers" as const,
-    category: "Texture",
-    title: "Weekly exfoliation",
-    desc: "Use a gentle AHA (glycolic acid) 1-2x per week to smooth texture. Avoid physical scrubs.",
-  },
-  {
-    icon: "aperture" as const,
-    category: "Pores",
-    title: "Salicylic acid cleanser",
-    desc: "BHA/salicylic acid penetrates pores to clear buildup. Use 2-3x weekly as part of your routine.",
-  },
-];
-
-function RoutineStep({
+function RoutineStepCard({
   item,
   isAM,
+  iconName,
 }: {
-  item: (typeof AM_ROUTINE)[0] | (typeof PM_ROUTINE)[0];
+  item: RoutineStep;
   isAM: boolean;
+  iconName: IconName;
 }) {
   const colors = useColors();
   const [expanded, setExpanded] = useState(false);
@@ -174,15 +87,63 @@ function RoutineStep({
   );
 }
 
+function LoadingCard() {
+  const colors = useColors();
+  return (
+    <View style={[styles.loadingCard, { backgroundColor: colors.card }]}>
+      <ActivityIndicator size="small" color={colors.primary} />
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.loadingTitle, { color: colors.foreground }]}>
+          Gemini AI is crafting your routine...
+        </Text>
+        <Text style={[styles.loadingDesc, { color: colors.taupe }]}>
+          Personalizing based on your skin analysis results
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 export default function RoutineScreen() {
   const colors = useColors();
   const router = useRouter();
-  const { user } = useApp();
+  const { user, currentScan } = useApp();
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<"morning" | "evening" | "suggestions">("morning");
+  const [tab, setTab] = useState<"morning" | "evening" | "insights">("morning");
+  const [routine, setRoutine] = useState<RoutineData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const topInset = Platform.OS === "web" ? 67 : insets.top;
   const bottomInset = Platform.OS === "web" ? 34 : insets.bottom;
+
+  useEffect(() => {
+    if (!currentScan) {
+      setLoading(false);
+      return;
+    }
+
+    const cacheKey = currentScan.id;
+    if (routineCache.has(cacheKey)) {
+      setRoutine(routineCache.get(cacheKey)!);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    generateRoutineWithAI(currentScan)
+      .then((data) => {
+        routineCache.set(cacheKey, data);
+        setRoutine(data);
+      })
+      .catch((err) => {
+        console.error("Failed to generate routine:", err);
+        setError("Could not generate AI routine. Please try again.");
+      })
+      .finally(() => setLoading(false));
+  }, [currentScan?.id]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.cream }]}>
@@ -207,13 +168,30 @@ export default function RoutineScreen() {
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Pro badge */}
+        {/* AI badge */}
         <View style={[styles.proBadge, { backgroundColor: colors.goldLight }]}>
           <Icon name="star" size={14} color={colors.gold} />
           <Text style={[styles.proBadgeText, { color: colors.gold }]}>
-            AI-Personalized Routine — Pro Plan
+            AI-Personalized by Gemini — Pro Plan
           </Text>
         </View>
+
+        {/* Overall advice */}
+        {routine?.overallAdvice && !loading && (
+          <View style={[styles.adviceCard, { backgroundColor: colors.card }]}>
+            <View style={styles.adviceHeader}>
+              <View style={[styles.adviceIcon, { backgroundColor: colors.blush }]}>
+                <Icon name="zap" size={16} color={colors.primary} />
+              </View>
+              <Text style={[styles.adviceTitle, { color: colors.foreground }]}>
+                Your AI Skin Analysis
+              </Text>
+            </View>
+            <Text style={[styles.adviceText, { color: colors.taupe }]}>
+              {routine.overallAdvice}
+            </Text>
+          </View>
+        )}
 
         {/* Tab selector */}
         <View style={[styles.tabRow, { backgroundColor: colors.blush }]}>
@@ -221,7 +199,7 @@ export default function RoutineScreen() {
             [
               { key: "morning", label: "Morning" },
               { key: "evening", label: "Evening" },
-              { key: "suggestions", label: "Tips" },
+              { key: "insights", label: "AI Tips" },
             ] as const
           ).map((t) => (
             <TouchableOpacity
@@ -248,85 +226,111 @@ export default function RoutineScreen() {
           ))}
         </View>
 
-        {tab === "morning" && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-              <Icon name="sun" size={18} color={colors.gold} />
-              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-                Morning Routine
-              </Text>
-              <Text style={[styles.sectionDuration, { color: colors.taupe }]}>
-                ~5 min
-              </Text>
-            </View>
-            {AM_ROUTINE.map((item) => (
-              <RoutineStep key={item.step} item={item} isAM={true} />
-            ))}
+        {loading && <LoadingCard />}
+
+        {error && !loading && (
+          <View style={[styles.errorCard, { backgroundColor: colors.card }]}>
+            <Icon name="alert-circle" size={20} color={colors.primary} />
+            <Text style={[styles.errorText, { color: colors.taupe }]}>{error}</Text>
           </View>
         )}
 
-        {tab === "evening" && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-              <Icon name="moon" size={18} color={colors.roseMid} />
-              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-                Evening Routine
-              </Text>
-              <Text style={[styles.sectionDuration, { color: colors.taupe }]}>
-                ~8 min
-              </Text>
-            </View>
-            {PM_ROUTINE.map((item) => (
-              <RoutineStep key={item.step} item={item} isAM={false} />
-            ))}
-          </View>
-        )}
-
-        {tab === "suggestions" && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-              Personalized AI Suggestions
-            </Text>
-            {AI_SUGGESTIONS.map((s) => (
-              <View
-                key={s.title}
-                style={[styles.suggestionCard, { backgroundColor: colors.card }]}
-              >
-                <View style={styles.suggestionHeader}>
-                  <View
-                    style={[
-                      styles.suggIconWrap,
-                      { backgroundColor: colors.blush },
-                    ]}
-                  >
-                    <Icon name={s.icon} size={18} color={colors.primary} />
-                  </View>
-                  <View>
-                    <Text
-                      style={[styles.suggCategory, { color: colors.taupeLight }]}
-                    >
-                      {s.category}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.suggTitle,
-                        { color: colors.foreground },
-                      ]}
-                    >
-                      {s.title}
-                    </Text>
-                  </View>
+        {!loading && !error && routine && (
+          <>
+            {tab === "morning" && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeaderRow}>
+                  <Icon name="sun" size={18} color={colors.gold} />
+                  <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+                    Morning Routine
+                  </Text>
+                  <Text style={[styles.sectionDuration, { color: colors.taupe }]}>
+                    ~5 min
+                  </Text>
                 </View>
-                <Text style={[styles.suggDesc, { color: colors.taupe }]}>
-                  {s.desc}
-                </Text>
+                {routine.morningSteps.map((item, index) => (
+                  <RoutineStepCard
+                    key={item.step}
+                    item={item}
+                    isAM={true}
+                    iconName={AM_ICONS[index % AM_ICONS.length]}
+                  />
+                ))}
               </View>
-            ))}
+            )}
 
-          </View>
+            {tab === "evening" && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeaderRow}>
+                  <Icon name="moon" size={18} color={colors.roseMid} />
+                  <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+                    Evening Routine
+                  </Text>
+                  <Text style={[styles.sectionDuration, { color: colors.taupe }]}>
+                    ~8 min
+                  </Text>
+                </View>
+                {routine.eveningSteps.map((item, index) => (
+                  <RoutineStepCard
+                    key={item.step}
+                    item={item}
+                    isAM={false}
+                    iconName={PM_ICONS[index % PM_ICONS.length]}
+                  />
+                ))}
+              </View>
+            )}
+
+            {tab === "insights" && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+                  Personalized AI Insights
+                </Text>
+                {routine.skinInsights.map((s, i) => (
+                  <View
+                    key={i}
+                    style={[styles.suggestionCard, { backgroundColor: colors.card }]}
+                  >
+                    <View style={styles.suggestionHeader}>
+                      <View
+                        style={[
+                          styles.suggIconWrap,
+                          { backgroundColor: colors.blush },
+                        ]}
+                      >
+                        <Icon
+                          name={STEP_ICONS[i % STEP_ICONS.length]}
+                          size={18}
+                          color={colors.primary}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <View style={styles.insightTopRow}>
+                          <Text style={[styles.suggCategory, { color: colors.taupeLight }]}>
+                            {s.category}
+                          </Text>
+                          {s.priority === "high" && (
+                            <View style={[styles.priorityBadge, { backgroundColor: colors.primary + "15" }]}>
+                              <Text style={[styles.priorityText, { color: colors.primary }]}>Priority</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={[styles.suggTitle, { color: colors.foreground }]}>
+                          {s.title}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.suggDesc, { color: colors.taupe }]}>
+                      {s.desc}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
         )}
 
-        {/* Pro upsell card — below all tabs, only for Plus users */}
+        {/* Pro upsell card */}
         {user?.plan === "plus" && (
           <TouchableOpacity
             onPress={() => router.push("/subscribe")}
@@ -338,7 +342,6 @@ export default function RoutineScreen() {
               style={styles.proUpsellGrad}
             >
               <View style={styles.proUpsellGlow} />
-
               <View style={styles.proUpsellTopRow}>
                 <View style={styles.proUpsellBadge}>
                   <Icon name="star" size={11} color={colors.gold} />
@@ -348,30 +351,12 @@ export default function RoutineScreen() {
                 </View>
                 <Text style={styles.proUpsellPrice}>$12.99/mo</Text>
               </View>
-
               <Text style={styles.proUpsellHeading}>
                 Unlock Advanced AI Insights
               </Text>
               <Text style={styles.proUpsellSub}>
                 Your Plus plan gives you great tips — but Pro goes deeper with AI trained on your personal scan history.
               </Text>
-
-              <View style={styles.proUpsellFeatures}>
-                {[
-                  { icon: "cpu" as const, text: "Advanced AI skin analysis across all 5 metrics" },
-                  { icon: "calendar" as const, text: "Personalized daily routine rebuilt each week" },
-                  { icon: "trending-up" as const, text: "Progress tracking with trend predictions" },
-                  { icon: "unlock" as const, text: "Unlimited scans, no daily cap" },
-                ].map((f) => (
-                  <View key={f.text} style={styles.proUpsellFeatureRow}>
-                    <View style={styles.proUpsellFeatureIcon}>
-                      <Icon name={f.icon} size={14} color={colors.gold} />
-                    </View>
-                    <Text style={styles.proUpsellFeatureText}>{f.text}</Text>
-                  </View>
-                ))}
-              </View>
-
               <View style={[styles.proUpsellBtn, { backgroundColor: colors.primary }]}>
                 <Icon name="zap" size={15} color="#fff" />
                 <Text style={styles.proUpsellBtnText}>Upgrade to Pro</Text>
@@ -411,6 +396,21 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   proBadgeText: { fontSize: 13, fontFamily: "Nunito_600SemiBold" },
+  adviceCard: {
+    borderRadius: 18,
+    padding: 16,
+    gap: 10,
+  },
+  adviceHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  adviceIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  adviceTitle: { fontSize: 15, fontFamily: "Nunito_700Bold" },
+  adviceText: { fontSize: 13, fontFamily: "Nunito_400Regular", lineHeight: 20 },
   tabRow: {
     flexDirection: "row",
     borderRadius: 16,
@@ -461,13 +461,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     gap: 10,
-    shadowColor: "#E8738A",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
-  suggestionHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  suggestionHeader: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   suggIconWrap: {
     width: 40,
     height: 40,
@@ -475,9 +470,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  insightTopRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 2 },
   suggCategory: { fontSize: 11, fontFamily: "Nunito_600SemiBold", textTransform: "uppercase", letterSpacing: 0.5 },
+  priorityBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  priorityText: { fontSize: 10, fontFamily: "Nunito_700Bold" },
   suggTitle: { fontSize: 15, fontFamily: "Nunito_700Bold" },
   suggDesc: { fontSize: 13, fontFamily: "Nunito_400Regular", lineHeight: 20 },
+  loadingCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 20,
+    borderRadius: 18,
+  },
+  loadingTitle: { fontSize: 15, fontFamily: "Nunito_700Bold", marginBottom: 4 },
+  loadingDesc: { fontSize: 13, fontFamily: "Nunito_400Regular" },
+  errorCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 16,
+    borderRadius: 18,
+  },
+  errorText: { fontSize: 13, fontFamily: "Nunito_400Regular", flex: 1 },
   proUpsellCard: { borderRadius: 24, overflow: "hidden" },
   proUpsellGrad: { padding: 22, gap: 14, overflow: "hidden" },
   proUpsellGlow: {
@@ -505,17 +520,6 @@ const styles = StyleSheet.create({
   proUpsellPrice: { fontSize: 16, fontFamily: "Nunito_800ExtraBold", color: "#fff" },
   proUpsellHeading: { fontSize: 20, fontFamily: "Nunito_800ExtraBold", color: "#fff", lineHeight: 26 },
   proUpsellSub: { fontSize: 13, fontFamily: "Nunito_400Regular", color: "rgba(255,255,255,0.55)", lineHeight: 20 },
-  proUpsellFeatures: { gap: 10 },
-  proUpsellFeatureRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  proUpsellFeatureIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(212,175,55,0.15)",
-  },
-  proUpsellFeatureText: { fontSize: 13, fontFamily: "Nunito_500Medium", color: "rgba(255,255,255,0.82)", flex: 1 },
   proUpsellBtn: {
     flexDirection: "row",
     alignItems: "center",

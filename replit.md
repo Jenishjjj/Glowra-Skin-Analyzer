@@ -52,3 +52,22 @@ AI-powered face & skin analysis app for women. Built with Expo (React Native).
 ### Subscription Model
 - **Free**: 1 scan/day, basic report (score + skin age + basic analytics), no AI suggestions/routine
 - **Pro ($9.99/mo)**: Unlimited scans, deep report, AI suggestions, daily routine
+
+## AI Integration (Gemini)
+
+Powered by **Gemini 3 Flash** via Replit AI Integrations (no user API key required).
+
+### API Endpoints (api-server)
+- `POST /api/ai/analyze-skin` — Analyzes a base64 selfie image, returns skin scores (skinScore, skinAge, hydration, pigmentation, texture, pores, elasticity)
+- `POST /api/ai/generate-routine` — Takes skin metrics, returns personalized morning/evening routine steps and AI insights
+
+### Mobile Integration
+- `artifacts/glowra/lib/aiService.ts` — Handles image-to-base64 conversion and API calls
+- `artifacts/glowra/app/analyzing.tsx` — Calls AI analysis instead of random data; falls back gracefully if AI fails
+- `artifacts/glowra/app/routine.tsx` — Fetches AI-generated routine from API; caches by scan ID
+
+### Environment Variables
+- `AI_INTEGRATIONS_GEMINI_BASE_URL` — Auto-configured by Replit
+- `AI_INTEGRATIONS_GEMINI_API_KEY` — Auto-configured by Replit
+- `EXPO_PUBLIC_SUPABASE_URL` — Supabase project URL
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key
