@@ -1,5 +1,5 @@
-import { Platform } from "react-native";
 import { ScanResult } from "@/context/AppContext";
+import { clearPendingImage, getPendingImage } from "@/lib/pendingImage";
 
 const API_BASE = `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
 
@@ -25,66 +25,37 @@ export type RoutineData = {
   overallAdvice: string;
 };
 
-async function uriToBase64(uri: string): Promise<{ base64: string; mimeType: string }> {
-  if (uri.startsWith("data:")) {
-    const [header, base64] = uri.split(",");
-    const mimeType = header.split(":")[1].split(";")[0];
-    return { base64, mimeType };
+export async function analyzeSkinWithAI(): Promise<Partial<ScanResult>> {
+  const { base64, mimeType } = getPendingImage();
+
+  if (!base64) {
+    throw new Error("No image available for AI analysis");
   }
 
-  const response = await fetch(uri);
-  const blob = await response.blob();
-  const mimeType = blob.type || "image/jpeg";
-
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.split(",")[1];
-      resolve({ base64, mimeType });
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
+  const response = await fetch(`${API_BASE}/ai/analyze-skin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageBase64: base64, mimeType }),
   });
-}
 
-export async function analyzeSkinWithAI(imageUri: string): Promise<Partial<ScanResult>> {
-  try {
-    let base64: string;
-    let mimeType: string;
-
-    if (Platform.OS === "web" && imageUri) {
-      const result = await uriToBase64(imageUri);
-      base64 = result.base64;
-      mimeType = result.mimeType;
-    } else {
-      throw new Error("Image conversion not supported on this platform yet");
-    }
-
-    const response = await fetch(`${API_BASE}/ai/analyze-skin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageBase64: base64, mimeType }),
-    });
-
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-    const data = await response.json();
-
-    return {
-      skinScore: Math.round(Math.min(10, Math.max(1, data.skinScore ?? 7))),
-      skinAge: Math.round(data.skinAge ?? 28),
-      actualAge: Math.round(data.actualAge ?? 25),
-      hydration: Math.round(Math.min(100, Math.max(0, data.hydration ?? 70))),
-      pigmentation: Math.round(Math.min(100, Math.max(0, data.pigmentation ?? 65))),
-      texture: Math.round(Math.min(100, Math.max(0, data.texture ?? 75))),
-      pores: Math.round(Math.min(100, Math.max(0, data.pores ?? 60))),
-      elasticity: Math.round(Math.min(100, Math.max(0, data.elasticity ?? 72))),
-    };
-  } catch (error) {
-    console.warn("AI skin analysis failed, using fallback:", error);
-    throw error;
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "");
+    throw new Error(`API error ${response.status}: ${errText}`);
   }
+
+  const data = await response.json();
+  clearPendingImage();
+
+  return {
+    skinScore: Math.round(Math.min(10, Math.max(1, data.skinScore ?? 7))),
+    skinAge: Math.round(data.skinAge ?? 28),
+    actualAge: Math.round(data.actualAge ?? 25),
+    hydration: Math.round(Math.min(100, Math.max(0, data.hydration ?? 70))),
+    pigmentation: Math.round(Math.min(100, Math.max(0, data.pigmentation ?? 65))),
+    texture: Math.round(Math.min(100, Math.max(0, data.texture ?? 75))),
+    pores: Math.round(Math.min(100, Math.max(0, data.pores ?? 60))),
+    elasticity: Math.round(Math.min(100, Math.max(0, data.elasticity ?? 72))),
+  };
 }
 
 export async function generateRoutineWithAI(scan: ScanResult): Promise<RoutineData> {

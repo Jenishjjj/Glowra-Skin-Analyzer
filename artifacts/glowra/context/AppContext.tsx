@@ -75,7 +75,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedInState] = useState(false);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [currentScan, setCurrentScan] = useState<ScanResult | null>(null);
-  const [loaded, setLoaded] = useState(false);
 
   // ── Bootstrap: restore onboarded flag + check Supabase session ──────────────
   useEffect(() => {
@@ -84,14 +83,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const onb = await AsyncStorage.getItem("isOnboarded");
         if (onb === "true") setIsOnboardedState(true);
 
+        // Load guest scans for non-logged-in users
+        const raw = await AsyncStorage.getItem("guest_scans");
+        if (raw) {
+          try { setScanHistory(JSON.parse(raw)); } catch (e) {}
+        }
+
         if (isSupabaseConfigured) {
-          const session = await getSession();
-          if (session?.user) {
-            await loadUserData(session.user.id);
+          try {
+            const session = await Promise.race([
+              getSession(),
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+            ]);
+            if (session?.user) {
+              await loadUserData(session.user.id);
+            }
+          } catch (sessionErr) {
+            console.warn("Session check failed:", sessionErr);
           }
         }
-      } finally {
-        setLoaded(true);
+      } catch (e) {
+        console.warn("Bootstrap error:", e);
       }
     })();
 
@@ -161,7 +173,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addScan = async (scan: ScanResult) => {
     // Optimistic local update — always happens instantly
-    setScanHistory((prev) => [scan, ...prev].slice(0, 50));
+    setScanHistory((prev) => {
+      const updated = [scan, ...prev].slice(0, 50);
+      if (!user) {
+        AsyncStorage.setItem("guest_scans", JSON.stringify(updated)).catch(() => {});
+      }
+      return updated;
+    });
 
     const today = new Date().toDateString();
 
@@ -230,8 +248,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     user.plan === "pro" ||
     user.lastScanDate !== new Date().toDateString() ||
     user.scansToday < dailyLimit;
-
-  if (!loaded) return null;
 
   return (
     <AppContext.Provider

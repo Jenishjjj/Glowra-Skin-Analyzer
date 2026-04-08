@@ -20,6 +20,7 @@ import Animated, {
 import { useApp, ScanResult } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { analyzeSkinWithAI } from "@/lib/aiService";
+import { getPendingImage } from "@/lib/pendingImage";
 
 const { width } = Dimensions.get("window");
 
@@ -34,6 +35,17 @@ const STEPS = [
   "Generating your report...",
 ];
 
+function generateUUID(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 function fallbackScanResult(imageUri: string): ScanResult {
   const rand = (min: number, max: number) =>
     Math.floor(Math.random() * (max - min + 1)) + min;
@@ -41,7 +53,7 @@ function fallbackScanResult(imageUri: string): ScanResult {
   const actualAge = rand(20, 45);
   const ageDiff = rand(-5, 3);
   return {
-    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+    id: generateUUID(),
     date: new Date().toISOString(),
     skinScore,
     skinAge: actualAge + ageDiff,
@@ -124,15 +136,18 @@ export default function AnalyzingScreen() {
     const runAnalysis = async () => {
       let aiResult: Partial<ScanResult> | null = null;
 
-      if (imageUri) {
+      const { base64: pendingBase64 } = getPendingImage();
+      if (pendingBase64) {
         try {
           setStatusText("Running AI skin analysis...");
-          aiResult = await analyzeSkinWithAI(imageUri);
+          aiResult = await analyzeSkinWithAI();
           setStatusText("AI analysis complete!");
         } catch (err) {
           console.warn("AI analysis failed, using smart estimation:", err);
           setStatusText("Finalizing your results...");
         }
+      } else {
+        setStatusText("Finalizing your results...");
       }
 
       analysisComplete = true;

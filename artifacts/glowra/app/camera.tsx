@@ -1,4 +1,5 @@
 import { Icon } from "@/components/Icon";
+import { setPendingImage } from "@/lib/pendingImage";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -86,7 +87,29 @@ export default function CameraScreen() {
     }
   };
 
-  const analyze = () => {
+  const analyze = async () => {
+    if (selectedImage) {
+      try {
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        const mimeType = blob.type || "image/jpeg";
+        await new Promise<void>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result as string;
+            const base64 = dataUrl.split(",")[1];
+            if (base64) {
+              setPendingImage(base64, mimeType);
+            }
+            resolve();
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.warn("Image pre-conversion failed, AI will attempt inline:", e);
+      }
+    }
     router.replace({ pathname: "/analyzing", params: { imageUri: selectedImage || "" } });
   };
 
