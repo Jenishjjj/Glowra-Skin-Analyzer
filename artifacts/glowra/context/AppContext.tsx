@@ -10,7 +10,7 @@ import {
   updateProfile,
 } from "@/lib/authService";
 import { fetchScans, saveScan } from "@/lib/scanService";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 export type ScanResult = {
   id: string;
@@ -84,14 +84,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const onb = await AsyncStorage.getItem("isOnboarded");
         if (onb === "true") setIsOnboardedState(true);
 
-        const session = await getSession();
-        if (session?.user) {
-          await loadUserData(session.user.id);
+        if (isSupabaseConfigured) {
+          const session = await getSession();
+          if (session?.user) {
+            await loadUserData(session.user.id);
+          }
         }
       } finally {
         setLoaded(true);
       }
     })();
+
+    if (!isSupabaseConfigured) return;
 
     // Listen for auth state changes (login / logout)
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
